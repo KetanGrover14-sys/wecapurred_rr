@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx expo *)",
+      "Bash(Remove-Item -Recurse -Force node_modules)",
+      "Bash(netsh advfirewall *)"
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "WecapuRRed",
+    "slug": "wecapurred-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#CC0000"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.wecapurred.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "WecapuRRed needs camera access to photograph banners and hoardings.",
+        "NSPhotoLibraryUsageDescription": "WecapuRRed needs photo library access to select and save images.",
+        "NSPhotoLibraryAddUsageDescription": "WecapuRRed needs permission to save photos to your library."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#CC0000"
+      },
+      "package": "com.wecapurred.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "WecapuRRed needs access to your photos.",
+          "cameraPermission": "WecapuRRed needs access to your camera."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow WecapuRRed to access your photos.",
+          "savePhotosPermission": "Allow WecapuRRed to save photos."
+        }
+      ]
+    ]
+  }
+}
