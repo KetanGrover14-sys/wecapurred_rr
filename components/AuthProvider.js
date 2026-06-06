@@ -6,7 +6,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const CREDENTIALS = {
   email: 'ketangrover2002@gmail.com',
-  password: 'Ket@n@0114',
+  password: 'Rrgroup@987',
 };
 
 export default function AuthProvider({ children }) {
