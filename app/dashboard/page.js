@@ -56,7 +56,6 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <p className="text-red-200 text-sm font-medium">Good day 👋</p>
               <h1 className="text-2xl sm:text-3xl font-black mt-0.5">My Projects</h1>
             </div>
             <button onClick={load}
