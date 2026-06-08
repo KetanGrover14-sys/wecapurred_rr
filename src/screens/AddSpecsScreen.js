@@ -10,7 +10,7 @@ import { addPhoto } from '../services/firestoreService';
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../utils/colors';
 
-const MATERIALS = ['Flex', 'Vinyl', 'LED / Digital', 'Hoarding', 'Neon Sign', 'Unipole', 'Gantry', 'Other'];
+const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
 
 export default function AddSpecsScreen({ route, navigation }) {
   const { imageUri, projectId } = route.params;

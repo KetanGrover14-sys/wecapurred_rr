@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Upload, Loader2, ImagePlus, Camera, FolderOpen, RotateCcw, MapPin, LocateFixed, Plus, Trash2 } from 'lucide-react';
 import { addPhoto } from '../lib/apiService';
 
-const MATERIALS = ['Flex','Vinyl','LED / Digital','Hoarding','Neon Sign','Unipole','Gantry','Other'];
+const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
 
 const blankEntry = () => ({ _id: Date.now() + Math.random(), material: '', length: '', breadth: '', height: '', notes: '' });
 
