@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '../../../components/AuthProvider';
 import Navbar from '../../../components/Navbar';
@@ -20,6 +20,16 @@ export default function ProjectPage() {
   const [showAdd, setShowAdd]       = useState(false);
   const [selected, setSelected]     = useState(null);
   const [generating, setGenerating] = useState(false);
+
+  // Group flat photo rows by image_url → one card per unique image
+  const groupedPhotos = useMemo(() => {
+    const map = new Map();
+    photos.forEach((p) => {
+      if (!map.has(p.image_url)) map.set(p.image_url, []);
+      map.get(p.image_url).push(p);
+    });
+    return [...map.values()];
+  }, [photos]);
 
   const loadPhotos = useCallback(async () => {
     setLoading(true);
@@ -85,7 +95,7 @@ export default function ProjectPage() {
               {project.description && <p className="text-red-300 text-xs mt-1 line-clamp-2">{project.description}</p>}
             </div>
             <div className="flex-shrink-0 bg-white/15 rounded-2xl px-3 py-2 text-center">
-              <p className="text-2xl font-black">{photos.length}</p>
+              <p className="text-2xl font-black">{groupedPhotos.length}</p>
               <p className="text-red-200 text-xs">photos</p>
             </div>
           </div>
@@ -130,8 +140,8 @@ export default function ProjectPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-4 sm:pt-0">
-            {photos.map((photo) => (
-              <PhotoCard key={photo.id} photo={photo} onClick={() => setSelected(photo)} />
+            {groupedPhotos.map((group) => (
+              <PhotoCard key={group[0].image_url} group={group} onClick={() => setSelected(group)} />
             ))}
           </div>
         )}
@@ -156,37 +166,44 @@ export default function ProjectPage() {
         <AddPhotoModal projectId={id} onClose={() => setShowAdd(false)} onAdded={handlePhotoAdded} />
       )}
       {selected && (
-        <PhotoDetailModal photo={selected} projectId={id} onClose={() => setSelected(null)} onDeleted={handlePhotoDeleted} />
+        <PhotoDetailModal photos={selected} projectId={id} onClose={() => setSelected(null)} onDeleted={handlePhotoDeleted} />
       )}
     </div>
   );
 }
 
-function PhotoCard({ photo, onClick }) {
+function PhotoCard({ group, onClick }) {
+  const first = group[0];
+  const multiEntry = group.length > 1;
   return (
     <div onClick={onClick}
       className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 active:scale-[0.97] transition-all cursor-pointer group">
       <div className="relative h-40 sm:h-44 overflow-hidden bg-gray-100">
-        <img src={photo.image_url} alt="Banner"
+        <img src={first.image_url} alt="Banner"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        {photo.material && (
+        {first.material && (
           <span className="absolute top-2 left-2 bg-primary-500/90 backdrop-blur text-white text-xs font-bold px-2 py-0.5 rounded-full">
-            {photo.material}
+            {first.material}{multiEntry ? ` +${group.length - 1}` : ''}
+          </span>
+        )}
+        {multiEntry && !first.material && (
+          <span className="absolute top-2 left-2 bg-black/50 backdrop-blur text-white text-xs font-bold px-2 py-0.5 rounded-full">
+            {group.length} entries
           </span>
         )}
       </div>
       <div className="p-2.5 space-y-1">
-        {photo.location && (
+        {first.location && (
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <MapPin size={10} className="text-primary-500 flex-shrink-0" />
-            <span className="truncate">{photo.location}</span>
+            <span className="truncate">{first.location}</span>
           </div>
         )}
-        {(photo.length || photo.breadth || photo.height) && (
+        {(first.length || first.breadth || first.height) && (
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <Ruler size={10} className="flex-shrink-0" />
             <span className="truncate">
-              {[photo.length && `L:${photo.length}`, photo.breadth && `B:${photo.breadth}`, photo.height && `H:${photo.height}`].filter(Boolean).join(' ')}
+              {[first.length && `L:${first.length}`, first.breadth && `B:${first.breadth}`, first.height && `H:${first.height}`].filter(Boolean).join(' ')}
             </span>
           </div>
         )}

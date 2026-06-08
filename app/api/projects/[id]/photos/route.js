@@ -12,27 +12,41 @@ export async function POST(request, { params }) {
   const file     = formData.get('file');
   if (!file) return Response.json({ error: 'No file provided' }, { status: 400 });
 
+  // Upload image once to S3
   const buffer   = Buffer.from(await file.arrayBuffer());
-  const photoId  = uuid();
-  const key      = `projects/${params.id}/${photoId}.jpg`;
+  const imageId  = uuid();
+  const key      = `projects/${params.id}/${imageId}.jpg`;
   const imageUrl = await uploadToS3(buffer, key, file.type || 'image/jpeg');
 
-  const photo = {
-    id:         photoId,
-    project_id: params.id,
-    image_url:  imageUrl,
-    s3_key:     key,
-    location:   formData.get('location')  || '',
-    length:     formData.get('length')    || '',
-    breadth:    formData.get('breadth')   || '',
-    height:     formData.get('height')    || '',
-    material:   formData.get('material')  || '',
-    notes:      formData.get('notes')     || '',
-    created_at: new Date().toISOString(),
-  };
+  const location = formData.get('location') || '';
+  const now      = new Date().toISOString();
 
-  await insertPhoto(photo);
-  await incrementPhotoCount(params.id, 1);
+  // Parse entries array [{ material, length, breadth, height, notes }]
+  let entries = [];
+  try { entries = JSON.parse(formData.get('entries') || '[]'); } catch {}
+  if (!entries.length) entries = [{}]; // fallback: single empty entry
 
-  return Response.json(photo, { status: 201 });
+  const created = [];
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    const photo = {
+      id:         uuid(),
+      project_id: params.id,
+      image_url:  imageUrl,
+      // Only first record owns the S3 key for deletion; others set null to avoid double-delete
+      s3_key:     i === 0 ? key : '',
+      location,
+      length:     e.length   || '',
+      breadth:    e.breadth  || '',
+      height:     e.height   || '',
+      material:   e.material || '',
+      notes:      e.notes    || '',
+      created_at: now,
+    };
+    await insertPhoto(photo);
+    created.push(photo);
+  }
+
+  await incrementPhotoCount(params.id, entries.length);
+  return Response.json(created, { status: 201 });
 }
