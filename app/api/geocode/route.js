@@ -6,7 +6,7 @@ export async function GET(request) {
 
   const res = await fetch(
     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`,
-    { headers: { 'User-Agent': 'WecapuRRed-App/1.0 (banner-management)' } }
+    { headers: { 'User-Agent': 'NorrvexPartner-App/1.0 (banner-management)' } }
   );
   const data = await res.json();
   return Response.json(data);

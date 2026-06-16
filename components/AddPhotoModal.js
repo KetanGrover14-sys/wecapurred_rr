@@ -1,11 +1,21 @@
 'use client';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Upload, Loader2, ImagePlus, Camera, FolderOpen, RotateCcw, MapPin, LocateFixed, Plus, Trash2 } from 'lucide-react';
+import { X, Upload, Loader2, ImagePlus, Camera, FolderOpen, RotateCcw, MapPin, LocateFixed, Plus, Trash2, Undo2, Eraser, Check } from 'lucide-react';
 import { addPhoto } from '../lib/apiService';
 
 const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
 
 const blankEntry = () => ({ _id: Date.now() + Math.random(), material: '', length: '', breadth: '', height: '', notes: '' });
+
+const PEN_COLORS = [
+  { label: 'Red',    hex: '#CC0000' },
+  { label: 'Black',  hex: '#000000' },
+  { label: 'White',  hex: '#FFFFFF' },
+  { label: 'Yellow', hex: '#FFD600' },
+  { label: 'Blue',   hex: '#1565C0' },
+  { label: 'Green',  hex: '#2E7D32' },
+];
+const PEN_SIZES = [3, 6, 12];
 
 export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   const galleryRef = useRef(null);
@@ -25,6 +35,21 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   const [cameraError, setCameraError] = useState('');
   const [locLoading, setLocLoading]   = useState(false);
   const [locError, setLocError]       = useState('');
+
+  // ── Annotation state ──────────────────────────────────────────
+  const [annotating, setAnnotating]   = useState(false);
+  const [rawFile, setRawFile]         = useState(null);
+  const [rawPreview, setRawPreview]   = useState(null);
+  const [penColor, setPenColor]       = useState('#CC0000');
+  const [penSize, setPenSize]         = useState(6);
+  const [canUndo, setCanUndo]         = useState(false);
+  const annotateCanvasRef = useRef(null);
+  const isDrawing     = useRef(false);
+  const lastPos       = useRef(null);
+  const penColorRef   = useRef('#CC0000');
+  const penSizeRef    = useRef(6);
+  const penPaths      = useRef([]); // [{points, color, size}]
+  const baseImageData = useRef(null);
 
   // ── Entry helpers ─────────────────────────────────────────────
   const addEntry    = () => setEntries((e) => [...e, blankEntry()]);
@@ -62,11 +87,20 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
 
   useEffect(() => { fetchLocation(); }, []);
 
+  // ── Open annotation after photo is chosen ─────────────────────
+  const openAnnotation = (f, url) => {
+    setRawFile(f);
+    setRawPreview(url);
+    penPaths.current = [];
+    setCanUndo(false);
+    setAnnotating(true);
+  };
+
   // ── Gallery / Camera ──────────────────────────────────────────
   const onGalleryFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    setFile(f); setPreview(URL.createObjectURL(f));
+    openAnnotation(f, URL.createObjectURL(f));
   };
 
   const startCamera = useCallback(async (facing) => {
@@ -105,8 +139,136 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
     canvas.getContext('2d').drawImage(video, 0, 0);
     canvas.toBlob((blob) => {
       const f = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      setFile(f); setPreview(URL.createObjectURL(f)); setCameraOpen(false);
+      setCameraOpen(false);
+      openAnnotation(f, URL.createObjectURL(f));
     }, 'image/jpeg', 0.92);
+  };
+
+  // ── Annotation canvas setup ───────────────────────────────────
+  useEffect(() => {
+    if (!annotating || !rawPreview) return;
+    const canvas = annotateCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => {
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+      baseImageData.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    };
+    img.src = rawPreview;
+  }, [annotating, rawPreview]);
+
+  // ── Drawing helpers ───────────────────────────────────────────
+  const getCanvasPos = (e) => {
+    const canvas = annotateCanvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const src = e.touches?.[0] ?? e;
+    return {
+      x: (src.clientX - rect.left) * scaleX,
+      y: (src.clientY - rect.top)  * scaleY,
+    };
+  };
+
+  const redrawAll = useCallback(() => {
+    const canvas = annotateCanvasRef.current;
+    if (!canvas || !baseImageData.current) return;
+    const ctx = canvas.getContext('2d');
+    ctx.putImageData(baseImageData.current, 0, 0);
+    for (const path of penPaths.current) {
+      if (path.points.length < 2) continue;
+      ctx.beginPath();
+      ctx.strokeStyle = path.color;
+      ctx.lineWidth   = path.size;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+      ctx.moveTo(path.points[0].x, path.points[0].y);
+      for (let i = 1; i < path.points.length; i++) {
+        ctx.lineTo(path.points[i].x, path.points[i].y);
+      }
+      ctx.stroke();
+    }
+  }, []);
+
+  const handlePointerDown = (e) => {
+    e.preventDefault();
+    isDrawing.current = true;
+    const pos = getCanvasPos(e);
+    lastPos.current = pos;
+    const ctx = annotateCanvasRef.current.getContext('2d');
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, penSizeRef.current / 2, 0, Math.PI * 2);
+    ctx.fillStyle = penColorRef.current;
+    ctx.fill();
+    // start tracking this stroke
+    penPaths.current = [...penPaths.current, { points: [pos], color: penColorRef.current, size: penSizeRef.current }];
+  };
+
+  const handlePointerMove = (e) => {
+    e.preventDefault();
+    if (!isDrawing.current) return;
+    const pos = getCanvasPos(e);
+    const ctx = annotateCanvasRef.current.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = penColorRef.current;
+    ctx.lineWidth   = penSizeRef.current;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.stroke();
+    lastPos.current = pos;
+    // append point to current stroke
+    const paths = penPaths.current;
+    const last = paths[paths.length - 1];
+    penPaths.current = [...paths.slice(0, -1), { ...last, points: [...last.points, pos] }];
+  };
+
+  const handlePointerUp = (e) => {
+    e.preventDefault();
+    if (!isDrawing.current) return;
+    isDrawing.current = false;
+    setCanUndo(penPaths.current.length > 0);
+  };
+
+  const handleUndo = () => {
+    penPaths.current = penPaths.current.slice(0, -1);
+    redrawAll();
+    setCanUndo(penPaths.current.length > 0);
+  };
+
+  const handleClear = () => {
+    penPaths.current = [];
+    redrawAll();
+    setCanUndo(false);
+  };
+
+  const handleAnnotateDone = () => {
+    const canvas = annotateCanvasRef.current;
+    canvas.toBlob((blob) => {
+      const annotatedFile = new File([blob], rawFile?.name || `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+      setFile(annotatedFile);
+      setPreview(URL.createObjectURL(annotatedFile));
+      setAnnotating(false);
+    }, 'image/jpeg', 0.92);
+  };
+
+  const handleAnnotateSkip = () => {
+    setFile(rawFile);
+    setPreview(rawPreview);
+    setAnnotating(false);
+  };
+
+  const selectPenColor = (hex) => {
+    penColorRef.current = hex;
+    setPenColor(hex);
+  };
+  const selectPenSize = (s) => {
+    penSizeRef.current = s;
+    setPenSize(s);
   };
 
   // ── Save ──────────────────────────────────────────────────────
@@ -168,6 +330,115 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
     );
   }
 
+  // ── Annotation fullscreen ─────────────────────────────────────
+  if (annotating) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col select-none">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-black/80 backdrop-blur flex-shrink-0">
+          <button onClick={handleAnnotateSkip} className="p-2.5 bg-white/10 rounded-xl text-white">
+            <X size={20} />
+          </button>
+          <div className="text-center">
+            <p className="text-white font-bold text-sm">Annotate Photo</p>
+            <p className="text-white/60 text-xs">Draw on the image, then tap Done</p>
+          </div>
+          <button
+            onClick={handleAnnotateDone}
+            className="flex items-center gap-1.5 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-bold text-sm px-4 py-2 rounded-xl transition-colors"
+          >
+            <Check size={16} /> Done
+          </button>
+        </div>
+
+        {/* Canvas area */}
+        <div className="flex-1 overflow-hidden flex items-center justify-center bg-black">
+          <canvas
+            ref={annotateCanvasRef}
+            className="max-w-full max-h-full object-contain touch-none cursor-crosshair"
+            style={{ display: 'block' }}
+            onMouseDown={handlePointerDown}
+            onMouseMove={handlePointerMove}
+            onMouseUp={handlePointerUp}
+            onMouseLeave={handlePointerUp}
+            onTouchStart={handlePointerDown}
+            onTouchMove={handlePointerMove}
+            onTouchEnd={handlePointerUp}
+          />
+        </div>
+
+        {/* Toolbar */}
+        <div className="bg-gray-900 px-4 py-3 flex-shrink-0 space-y-3"
+          style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+          {/* Color swatches */}
+          <div className="flex items-center justify-center gap-3">
+            {PEN_COLORS.map(({ label, hex }) => (
+              <button
+                key={label}
+                onClick={() => selectPenColor(hex)}
+                title={label}
+                className="transition-transform"
+                style={{
+                  width: 30, height: 30, borderRadius: '50%',
+                  backgroundColor: hex,
+                  border: penColor === hex ? '3px solid #fff' : '2px solid rgba(255,255,255,0.25)',
+                  transform: penColor === hex ? 'scale(1.2)' : 'scale(1)',
+                  boxShadow: hex === '#FFFFFF' ? '0 0 0 1px rgba(0,0,0,0.3)' : undefined,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Size + actions */}
+          <div className="flex items-center justify-between">
+            {/* Pen sizes */}
+            <div className="flex items-center gap-2">
+              {PEN_SIZES.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => selectPenSize(s)}
+                  className="flex items-center justify-center rounded-full transition-all"
+                  style={{
+                    width: 40, height: 40,
+                    background: penSize === s ? 'rgba(204,0,0,0.2)' : 'rgba(255,255,255,0.08)',
+                    border: penSize === s ? '2px solid #CC0000' : '2px solid transparent',
+                  }}
+                >
+                  <div style={{
+                    width: s * 2, height: s * 2,
+                    borderRadius: '50%',
+                    backgroundColor: penColor,
+                    boxShadow: penColor === '#FFFFFF' ? '0 0 0 1px rgba(0,0,0,0.4)' : undefined,
+                  }} />
+                </button>
+              ))}
+            </div>
+
+            {/* Undo / Clear */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors"
+                style={{ background: 'rgba(255,255,255,0.08)', color: canUndo ? '#fff' : 'rgba(255,255,255,0.3)' }}
+              >
+                <Undo2 size={15} /> Undo
+              </button>
+              <button
+                onClick={handleClear}
+                disabled={!canUndo}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-colors"
+                style={{ background: 'rgba(255,255,255,0.08)', color: canUndo ? '#ef4444' : 'rgba(255,255,255,0.3)' }}
+              >
+                <Eraser size={15} /> Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Main modal ────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex flex-col sm:items-center sm:justify-center sm:p-4" onClick={onClose}>
@@ -203,6 +474,12 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
               <div className="relative rounded-2xl overflow-hidden group">
                 <img src={preview} alt="preview" className="w-full h-44 object-cover" />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => openAnnotation(file, preview)}
+                    className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold"
+                  >
+                    ✏️ Annotate
+                  </button>
                   <button onClick={() => setCameraOpen(true)}
                     className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold">
                     <Camera size={14} /> Retake

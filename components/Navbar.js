@@ -16,7 +16,7 @@ export default function Navbar() {
             <div className="bg-primary-500 rounded-xl p-1.5">
               <Camera size={18} className="text-white" />
             </div>
-            <span className="text-lg font-black text-primary-500 tracking-tight">WecapuRRed</span>
+            <span className="text-lg font-black text-primary-500 tracking-tight">Norrvex Partner</span>
           </button>
 
           {user && (

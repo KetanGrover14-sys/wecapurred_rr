@@ -34,7 +34,7 @@ export default function AuthProvider({ children }) {
       <div className="min-h-screen flex items-center justify-center bg-primary-500">
         <div className="text-white text-center">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-lg font-semibold">WecapuRRed</p>
+          <p className="text-lg font-semibold">Norrvex Partner</p>
         </div>
       </div>
     );

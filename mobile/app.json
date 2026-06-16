@@ -58,7 +58,9 @@
           "photosPermission": "Allow Norrvex Partner to access your photos.",
           "savePhotosPermission": "Allow Norrvex Partner to save photos."
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "extra": {
       "eas": {

@@ -7,9 +7,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as Sharing from 'expo-sharing';
 import { getPhotos, deleteProject } from '../services/apiService';
-import { generatePPT } from '../services/pptService';
+import { generateAndSharePPT } from '../services/pptService';
 import PhotoCard from '../components/PhotoCard';
 import { colors } from '../utils/colors';
 
@@ -82,17 +81,7 @@ export default function ProjectDetailScreen({ route, navigation }) {
     }
     setGenerating(true);
     try {
-      const filePath = await generatePPT(project, photos);
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(filePath, {
-          mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-          dialogTitle: `Share ${project.name} Presentation`,
-          UTI: 'com.microsoft.powerpoint.pptx',
-        });
-      } else {
-        Alert.alert('Success', `Saved to: ${filePath}`);
-      }
+      await generateAndSharePPT(project);
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Failed to generate presentation. Please try again.');

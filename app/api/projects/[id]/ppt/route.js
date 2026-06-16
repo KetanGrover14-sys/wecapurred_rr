@@ -1,4 +1,5 @@
 import pptxgen from 'pptxgenjs';
+import { getProjectById, getPhotosByProject } from '../../../../../lib/sheets';
 
 const RED      = 'CC0000';
 const RED_DARK = '990000';
@@ -6,53 +7,53 @@ const WHITE    = 'FFFFFF';
 const DARK     = '1A1A1A';
 const LIGHT_BG = 'F8F8F8';
 
-const toBase64 = async (url) => {
-  const res  = await fetch(`/api/image-proxy?url=${encodeURIComponent(url)}`);
-  const json = await res.json();
-  if (!json.data) throw new Error('Image proxy returned no data');
-  return json.data;
-};
-
 const fmt = (ts) => {
   const d = ts ? new Date(ts) : new Date();
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-export const generatePPT = async (project, photos) => {
+const fetchImageAsBase64 = async (url) => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buf = await res.arrayBuffer();
+    const b64 = Buffer.from(buf).toString('base64');
+    const ct  = res.headers.get('content-type') || 'image/jpeg';
+    return `data:${ct};base64,${b64}`;
+  } catch {
+    return null;
+  }
+};
+
+export async function GET(_, { params }) {
+  const [project, photos] = await Promise.all([
+    getProjectById(params.id),
+    getPhotosByProject(params.id),
+  ]);
+
+  if (!project) return Response.json({ error: 'Not found' }, { status: 404 });
+
   const prs = new pptxgen();
   prs.layout = 'LAYOUT_16x9';
   prs.author = 'Norrvex Partner';
   prs.title  = project.name;
 
-  // ── Title slide ──────────────────────────────────────────
+  // Title slide
   const title = prs.addSlide();
   title.background = { color: RED };
   title.addShape(prs.ShapeType.rect, { x:0, y:0, w:'100%', h:0.12, fill:{color:RED_DARK}, line:{color:RED_DARK} });
   title.addShape(prs.ShapeType.rect, { x:0, y:5.5, w:'100%', h:0.13, fill:{color:RED_DARK}, line:{color:RED_DARK} });
-
-  title.addText('Norrvex Partner', {
-    x:0.5, y:0.9, w:9, h:1, color:WHITE, fontSize:52, bold:true, align:'center',
-  });
-  title.addText('Banner & Hoarding Solutions', {
-    x:0.5, y:2.0, w:9, h:0.45, color:'FFBBBB', fontSize:18, align:'center',
-  });
+  title.addText('Norrvex Partner', { x:0.5, y:0.9, w:9, h:1, color:WHITE, fontSize:52, bold:true, align:'center' });
+  title.addText('Banner & Hoarding Solutions', { x:0.5, y:2.0, w:9, h:0.45, color:'FFBBBB', fontSize:18, align:'center' });
   title.addShape(prs.ShapeType.rect, { x:3.5, y:2.6, w:3, h:0.03, fill:{color:WHITE}, line:{color:WHITE} });
-  title.addText(project.name, {
-    x:0.5, y:2.8, w:9, h:0.65, color:WHITE, fontSize:28, bold:true, align:'center',
-  });
-  title.addText(`Prepared for: ${project.client_name}`, {
-    x:0.5, y:3.55, w:9, h:0.4, color:'FFDDDD', fontSize:15, align:'center',
-  });
+  title.addText(project.name, { x:0.5, y:2.8, w:9, h:0.65, color:WHITE, fontSize:28, bold:true, align:'center' });
+  title.addText(`Prepared for: ${project.client_name}`, { x:0.5, y:3.55, w:9, h:0.4, color:'FFDDDD', fontSize:15, align:'center' });
   if (project.description) {
-    title.addText(project.description, {
-      x:1.5, y:4.05, w:7, h:0.45, color:'FFCCCC', fontSize:11, align:'center', italic:true,
-    });
+    title.addText(project.description, { x:1.5, y:4.05, w:7, h:0.45, color:'FFCCCC', fontSize:11, align:'center', italic:true });
   }
-  title.addText(fmt(project.created_at), {
-    x:0.5, y:5.1, w:9, h:0.28, color:'FFBBBB', fontSize:10, align:'center',
-  });
+  title.addText(fmt(project.created_at), { x:0.5, y:5.1, w:9, h:0.28, color:'FFBBBB', fontSize:10, align:'center' });
 
-  // ── Group flat rows by image_url → one slide per unique image ──
+  // Group flat rows by image_url
   const groupMap = new Map();
   photos.forEach((p) => {
     if (!groupMap.has(p.image_url)) groupMap.set(p.image_url, []);
@@ -60,28 +61,26 @@ export const generatePPT = async (project, photos) => {
   });
   const groups = [...groupMap.values()];
 
-  // ── Photo slides ─────────────────────────────────────────
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
     const first = group[0];
     const slide = prs.addSlide();
     slide.background = { color: WHITE };
 
-    // Header bar
     slide.addShape(prs.ShapeType.rect, { x:0, y:0, w:'100%', h:0.45, fill:{color:RED}, line:{color:RED} });
     slide.addText(project.name, { x:0.2, y:0.08, w:7.5, h:0.3, color:WHITE, fontSize:11, bold:true });
     slide.addText(`${i+1} / ${groups.length}`, { x:8.2, y:0.08, w:1.6, h:0.3, color:WHITE, fontSize:10, align:'right' });
 
     // Image — full slide width
-    try {
-      const imgData = await toBase64(first.image_url);
+    const imgData = await fetchImageAsBase64(first.image_url);
+    if (imgData) {
       slide.addImage({ data:imgData, x:0.15, y:0.48, w:4.7, h:3.72, sizing:{type:'contain',w:4.7,h:3.72} });
-    } catch (_) {}
+    }
 
     // ── Specs strip at the bottom ─────────────────────────
-    const SY = 4.24;   // strip top Y
-    const SH = 1.06;   // strip height  (SY + SH = 5.30, footer at 5.33)
-    const LH = 0.25;   // label-row height
+    const SY = 4.24;
+    const SH = 1.06;   // SY + SH = 5.30, footer at 5.33
+    const LH = 0.25;
     const CY = SY + LH;
     const CH = SH - LH;
 
@@ -92,14 +91,13 @@ export const generatePPT = async (project, photos) => {
     const numEntries = group.length;
 
     if (numEntries === 1) {
-      // 4 equal columns: Location | Material | Dimensions | Notes
       const photo = group[0];
       const dims  = [photo.length&&`L: ${photo.length}`, photo.breadth&&`B: ${photo.breadth}`, photo.height&&`H: ${photo.height}`].filter(Boolean).join('  ');
       const cols  = [
-        { label:'LOCATION',      val: first.location   },
-        { label:'MATERIAL/TYPE', val: photo.material   },
-        { label:'DIMENSIONS',    val: dims             },
-        { label:'NOTES',         val: photo.notes      },
+        { label:'LOCATION',      val: first.location  },
+        { label:'MATERIAL/TYPE', val: photo.material  },
+        { label:'DIMENSIONS',    val: dims            },
+        { label:'NOTES',         val: photo.notes     },
       ];
       const colW = 9.6 / cols.length;
       cols.forEach(({ label, val }, ci) => {
@@ -109,7 +107,6 @@ export const generatePPT = async (project, photos) => {
         slide.addText(val||'—', { x:cx, y:CY+0.28, w:colW-0.1, h:CH-0.34, color:val?DARK:'AAAAAA', fontSize:9, wrap:true });
       });
     } else {
-      // Location column + one column per entry
       const LOC_W  = 2.1;
       const entryW = (9.6 - LOC_W) / numEntries;
 
@@ -132,7 +129,7 @@ export const generatePPT = async (project, photos) => {
     slide.addText('Norrvex Partner  |  Banner & Hoarding Solutions', { x:0.2, y:5.36, w:9.6, h:0.22, color:WHITE, fontSize:7.5, align:'center' });
   }
 
-  // ── Thank You slide ───────────────────────────────────────
+  // Thank You slide
   const outro = prs.addSlide();
   outro.background = { color: RED };
   outro.addShape(prs.ShapeType.rect, { x:0, y:0, w:'100%', h:0.12, fill:{color:RED_DARK}, line:{color:RED_DARK} });
@@ -142,7 +139,14 @@ export const generatePPT = async (project, photos) => {
   outro.addText(`Project: ${project.name}  |  Client: ${project.client_name}`, { x:0.5, y:3.3, w:9, h:0.38, color:'FFDDDD', fontSize:14, align:'center' });
   outro.addText(`Total Sites: ${groups.length}`, { x:0.5, y:3.75, w:9, h:0.3, color:'FFCCCC', fontSize:12, align:'center' });
 
-  // ── Download ──────────────────────────────────────────────
+  const buffer = await prs.write({ outputType: 'nodebuffer' });
   const safeName = project.name.replace(/[^a-zA-Z0-9]/g, '_');
-  await prs.writeFile({ fileName: `${safeName}_Presentation.pptx` });
-};
+  const fileName = `${safeName}_Presentation.pptx`;
+
+  return new Response(buffer, {
+    headers: {
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'Content-Disposition': `attachment; filename="${fileName}"`,
+    },
+  });
+}

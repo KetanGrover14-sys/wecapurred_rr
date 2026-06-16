@@ -47,7 +47,7 @@ export default function LoginPage() {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur rounded-2xl mb-4 shadow-lg">
           <Camera size={30} className="text-white" />
         </div>
-        <h1 className="text-4xl font-black tracking-tight">WecapuRRed</h1>
+        <h1 className="text-4xl font-black tracking-tight">Norrvex Partner</h1>
         <p className="text-red-100 mt-1 text-base">Banner & Hoarding Solutions</p>
 
         <div className="flex justify-center gap-3 mt-6 flex-wrap">
@@ -104,7 +104,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <p className="text-center text-xs text-gray-300 py-6">© 2025 WecapuRRed. All rights reserved.</p>
+      <p className="text-center text-xs text-gray-300 py-6">© 2025 Norrvex Partner. All rights reserved.</p>
     </div>
   );
 }
