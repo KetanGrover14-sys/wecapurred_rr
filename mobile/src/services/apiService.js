@@ -23,11 +23,14 @@ export const getPhotos = (projectId) =>
 
 // entries: [{ material, length, breadth, height, notes }]
 // Image uploaded once; one DB row created per entry.
-export const addPhoto = (projectId, location, entries, imageUri, onProgress) =>
+export const addPhoto = (projectId, location, storeName, storeOwnerName, storeOwnerMobile, entries, imageUri, onProgress) =>
   new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append('file', { uri: imageUri, name: 'photo.jpg', type: 'image/jpeg' });
     formData.append('location', location);
+    formData.append('store_name', storeName);
+    formData.append('store_owner_name', storeOwnerName);
+    formData.append('store_owner_mobile', storeOwnerMobile);
     formData.append('entries', JSON.stringify(entries));
 
     const xhr = new XMLHttpRequest();

@@ -23,10 +23,13 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   const canvasRef  = useRef(null);
   const streamRef  = useRef(null);
 
-  const [file, setFile]               = useState(null);
-  const [preview, setPreview]         = useState(null);
-  const [location, setLocation]       = useState('');
-  const [entries, setEntries]         = useState([blankEntry()]);
+  const [file, setFile]                   = useState(null);
+  const [preview, setPreview]             = useState(null);
+  const [location, setLocation]           = useState('');
+  const [storeName, setStoreName]         = useState('');
+  const [storeOwnerName, setStoreOwnerName]     = useState('');
+  const [storeOwnerMobile, setStoreOwnerMobile] = useState('');
+  const [entries, setEntries]             = useState([blankEntry()]);
   const [progress, setProgress]       = useState(0);
   const [uploading, setUploading]     = useState(false);
   const [error, setError]             = useState('');
@@ -277,7 +280,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
     if (!location.trim())   return setError('Location is required.');
     setError(''); setUploading(true);
     try {
-      await addPhoto(projectId, location, entries, file, setProgress);
+      await addPhoto(projectId, location, storeName, storeOwnerName, storeOwnerMobile, entries, file, setProgress);
       onAdded();
     } catch { setError('Upload failed. Check your AWS S3 credentials.'); }
     finally  { setUploading(false); }
@@ -528,6 +531,32 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
                 </button>
               </div>
               {locError && <p className="text-xs text-amber-600 mt-1.5">⚠ {locError}</p>}
+            </div>
+
+            {/* ── Store Details (shared) ── */}
+            <div className="border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Store Details <span className="text-gray-400 font-normal normal-case tracking-normal">(shared across all entries)</span></span>
+              </div>
+              <div className="p-4 space-y-3">
+                <div>
+                  <p className="text-xs font-bold text-gray-600 mb-1.5">Store Name</p>
+                  <input value={storeName} onChange={(e) => setStoreName(e.target.value)}
+                    placeholder="e.g. Sharma Electronics" className="input-field" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 mb-1.5">Owner Name</p>
+                    <input value={storeOwnerName} onChange={(e) => setStoreOwnerName(e.target.value)}
+                      placeholder="Full name" className="input-field" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-600 mb-1.5">Owner Mobile</p>
+                    <input value={storeOwnerMobile} onChange={(e) => setStoreOwnerMobile(e.target.value)}
+                      placeholder="10-digit number" type="tel" className="input-field" />
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* ── Entries ── */}

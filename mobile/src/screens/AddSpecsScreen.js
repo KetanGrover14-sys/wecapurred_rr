@@ -21,9 +21,12 @@ const blankEntry = () => ({
 export default function AddSpecsScreen({ route, navigation }) {
   const { imageUri, projectId } = route.params;
 
-  const [location, setLocation]     = useState('');
-  const [locLoading, setLocLoading] = useState(false);
-  const [entries, setEntries]       = useState([blankEntry()]);
+  const [location, setLocation]               = useState('');
+  const [locLoading, setLocLoading]           = useState(false);
+  const [storeName, setStoreName]             = useState('');
+  const [storeOwnerName, setStoreOwnerName]   = useState('');
+  const [storeOwnerMobile, setStoreOwnerMobile] = useState('');
+  const [entries, setEntries]                 = useState([blankEntry()]);
   const [uploading, setUploading]   = useState(false);
   const [progress, setProgress]     = useState(0);
 
@@ -50,7 +53,7 @@ export default function AddSpecsScreen({ route, navigation }) {
     }
     setUploading(true);
     try {
-      await addPhoto(projectId, location.trim(), entries, imageUri, (p) => setProgress(p));
+      await addPhoto(projectId, location.trim(), storeName.trim(), storeOwnerName.trim(), storeOwnerMobile.trim(), entries, imageUri, (p) => setProgress(p));
       navigation.goBack();
     } catch (err) {
       console.error(err);
@@ -108,6 +111,58 @@ export default function AddSpecsScreen({ route, navigation }) {
                 : <Ionicons name="locate" size={20} color={colors.primary} />
               }
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Store Details (shared) */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="storefront-outline" size={15} color={colors.primary} />
+            <Text style={styles.cardTitle}>STORE DETAILS</Text>
+            <Text style={styles.cardNote}>(shared for all entries)</Text>
+          </View>
+
+          <View style={[styles.sectionRow, { marginBottom: 8 }]}>
+            <Ionicons name="business-outline" size={14} color={colors.primary} />
+            <Text style={styles.fieldLabel}>STORE NAME</Text>
+          </View>
+          <View style={styles.inputBox}>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Sharma Electronics"
+              placeholderTextColor={colors.textLight}
+              value={storeName}
+              onChangeText={setStoreName}
+            />
+          </View>
+
+          <View style={[styles.sectionRow, { marginTop: 14, marginBottom: 8 }]}>
+            <Ionicons name="person-outline" size={14} color={colors.primary} />
+            <Text style={styles.fieldLabel}>OWNER NAME</Text>
+          </View>
+          <View style={styles.inputBox}>
+            <TextInput
+              style={styles.input}
+              placeholder="Full name"
+              placeholderTextColor={colors.textLight}
+              value={storeOwnerName}
+              onChangeText={setStoreOwnerName}
+            />
+          </View>
+
+          <View style={[styles.sectionRow, { marginTop: 14, marginBottom: 8 }]}>
+            <Ionicons name="call-outline" size={14} color={colors.primary} />
+            <Text style={styles.fieldLabel}>OWNER MOBILE</Text>
+          </View>
+          <View style={styles.inputBox}>
+            <TextInput
+              style={styles.input}
+              placeholder="10-digit number"
+              placeholderTextColor={colors.textLight}
+              value={storeOwnerMobile}
+              onChangeText={setStoreOwnerMobile}
+              keyboardType="phone-pad"
+            />
           </View>
         </View>
 

@@ -18,8 +18,11 @@ export async function POST(request, { params }) {
   const key      = `projects/${params.id}/${imageId}.jpg`;
   const imageUrl = await uploadToS3(buffer, key, file.type || 'image/jpeg');
 
-  const location = formData.get('location') || '';
-  const now      = new Date().toISOString();
+  const location          = formData.get('location')          || '';
+  const storeName         = formData.get('store_name')         || '';
+  const storeOwnerName    = formData.get('store_owner_name')    || '';
+  const storeOwnerMobile  = formData.get('store_owner_mobile')  || '';
+  const now               = new Date().toISOString();
 
   // Parse entries array [{ material, length, breadth, height, notes }]
   let entries = [];
@@ -34,9 +37,12 @@ export async function POST(request, { params }) {
       project_id: params.id,
       image_url:  imageUrl,
       // Only first record owns the S3 key for deletion; others set null to avoid double-delete
-      s3_key:     i === 0 ? key : '',
+      s3_key:             i === 0 ? key : '',
       location,
-      length:     e.length   || '',
+      store_name:         storeName,
+      store_owner_name:   storeOwnerName,
+      store_owner_mobile: storeOwnerMobile,
+      length:             e.length   || '',
       breadth:    e.breadth  || '',
       height:     e.height   || '',
       material:   e.material || '',

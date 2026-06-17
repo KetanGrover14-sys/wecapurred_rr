@@ -90,28 +90,39 @@ export async function GET(_, { params }) {
 
     const numEntries = group.length;
 
+    // Helper: render location + store info in left column
+    const addStoreCol = (cx, w) => {
+      const storeLine = first.store_name || '';
+      const ownerLine = [first.store_owner_name, first.store_owner_mobile].filter(Boolean).join('  •  ');
+      slide.addText('LOCATION / STORE', { x:cx, y:CY+0.06, w, h:0.18, color:RED, fontSize:7, bold:true });
+      slide.addText(first.location||'—', { x:cx, y:CY+0.26, w, h:0.18, color:first.location?DARK:'AAAAAA', fontSize:8.5, wrap:true });
+      if (storeLine) slide.addText(storeLine, { x:cx, y:CY+0.46, w, h:0.17, color:DARK, fontSize:8, wrap:true });
+      if (ownerLine) slide.addText(ownerLine, { x:cx, y:CY+0.64, w, h:0.16, color:DARK, fontSize:7.5, wrap:true });
+    };
+
     if (numEntries === 1) {
-      const photo = group[0];
-      const dims  = [photo.length&&`L: ${photo.length}`, photo.breadth&&`B: ${photo.breadth}`, photo.height&&`H: ${photo.height}`].filter(Boolean).join('  ');
-      const cols  = [
-        { label:'LOCATION',      val: first.location  },
-        { label:'MATERIAL/TYPE', val: photo.material  },
-        { label:'DIMENSIONS',    val: dims            },
-        { label:'NOTES',         val: photo.notes     },
-      ];
-      const colW = 9.6 / cols.length;
-      cols.forEach(({ label, val }, ci) => {
-        const cx = 0.2 + ci * colW;
-        if (ci > 0) slide.addShape(prs.ShapeType.rect, { x:cx-0.04, y:CY+0.08, w:0.02, h:CH-0.16, fill:{color:'CCCCCC'}, line:{color:'CCCCCC'} });
-        slide.addText(label, { x:cx, y:CY+0.08, w:colW-0.1, h:0.18, color:RED, fontSize:7, bold:true });
-        slide.addText(val||'—', { x:cx, y:CY+0.28, w:colW-0.1, h:CH-0.34, color:val?DARK:'AAAAAA', fontSize:9, wrap:true });
+      const photo  = group[0];
+      const dims   = [photo.length&&`L: ${photo.length}`, photo.breadth&&`B: ${photo.breadth}`, photo.height&&`H: ${photo.height}`].filter(Boolean).join('  ');
+      const LEFT_W = 3.0;
+      const COL_W  = (9.6 - LEFT_W) / 3;
+
+      addStoreCol(0.2, LEFT_W - 0.1);
+
+      [
+        { label:'MATERIAL/TYPE', val: photo.material },
+        { label:'DIMENSIONS',    val: dims           },
+        { label:'NOTES',         val: photo.notes    },
+      ].forEach(({ label, val }, ci) => {
+        const cx = 0.2 + LEFT_W + ci * COL_W;
+        slide.addShape(prs.ShapeType.rect, { x:cx-0.04, y:CY+0.08, w:0.02, h:CH-0.16, fill:{color:'CCCCCC'}, line:{color:'CCCCCC'} });
+        slide.addText(label, { x:cx, y:CY+0.08, w:COL_W-0.1, h:0.18, color:RED, fontSize:7, bold:true });
+        slide.addText(val||'—', { x:cx, y:CY+0.28, w:COL_W-0.1, h:CH-0.34, color:val?DARK:'AAAAAA', fontSize:9, wrap:true });
       });
     } else {
-      const LOC_W  = 2.1;
+      const LOC_W  = 2.6;
       const entryW = (9.6 - LOC_W) / numEntries;
 
-      slide.addText('LOCATION', { x:0.2, y:CY+0.08, w:LOC_W-0.1, h:0.18, color:RED, fontSize:7, bold:true });
-      slide.addText(first.location||'—', { x:0.2, y:CY+0.28, w:LOC_W-0.1, h:CH-0.34, color:first.location?DARK:'AAAAAA', fontSize:9, wrap:true });
+      addStoreCol(0.2, LOC_W - 0.1);
       slide.addShape(prs.ShapeType.rect, { x:0.2+LOC_W, y:CY+0.08, w:0.02, h:CH-0.16, fill:{color:'CCCCCC'}, line:{color:'CCCCCC'} });
 
       group.forEach((photo, idx) => {
