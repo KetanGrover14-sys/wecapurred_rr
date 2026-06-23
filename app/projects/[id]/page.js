@@ -77,35 +77,44 @@ export default function ProjectPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen" style={{ backgroundColor: '#F5EDD6' }}>
         <Navbar />
         <div className="flex items-center justify-center py-32">
-          <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
+            style={{ borderColor: '#2D6A4F', borderTopColor: 'transparent' }} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen pb-28" style={{ backgroundColor: '#F5EDD6' }}>
       <Navbar />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary-700 via-primary-500 to-red-400 text-white">
+      <div style={{ background: 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 55%, #40916C 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <button onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-1.5 text-red-200 active:text-white transition-colors text-sm mb-3">
-            <ArrowLeft size={15} /> All Projects
+            className="flex items-center gap-1.5 text-sm mb-3 transition-opacity hover:opacity-80"
+            style={{ color: '#95D5B2' }}>
+            <ArrowLeft size={14} /> All Projects
           </button>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-black truncate">{project.name}</h1>
-              <p className="text-red-200 text-sm mt-0.5 truncate">Client: {project.client_name}</p>
-              {project.description && <p className="text-red-300 text-xs mt-1 line-clamp-2">{project.description}</p>}
+              <h1 className="text-2xl sm:text-3xl font-light text-white truncate">{project.name}</h1>
+              <p className="text-sm font-light mt-0.5 truncate" style={{ color: '#95D5B2' }}>
+                Client: {project.client_name}
+              </p>
+              {project.description && (
+                <p className="text-xs font-light mt-1 line-clamp-2" style={{ color: '#74C69D' }}>
+                  {project.description}
+                </p>
+              )}
             </div>
-            <div className="flex-shrink-0 bg-white/15 rounded-2xl px-3 py-2 text-center">
-              <p className="text-2xl font-black">{groupedPhotos.length}</p>
-              <p className="text-red-200 text-xs">photos</p>
+            <div className="flex-shrink-0 rounded-2xl px-3 py-2 text-center"
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+              <p className="text-2xl font-light text-white">{groupedPhotos.length}</p>
+              <p className="text-xs font-light" style={{ color: '#95D5B2' }}>photos</p>
             </div>
           </div>
         </div>
@@ -115,57 +124,64 @@ export default function ProjectPage() {
       <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex gap-2">
           <button onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm text-sm">
-            <Plus size={16} className="text-primary-500" /> Add Photo
+            className="flex items-center gap-2 border font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
+            style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0', color: '#1B3A2A' }}>
+            <Plus size={15} style={{ color: '#2D6A4F' }} /> Add Photo
           </button>
           <button onClick={() => { loadPhotos(); loadFiles(); }}
-            className="p-2.5 border border-gray-200 bg-white rounded-xl hover:bg-gray-50 transition-colors">
-            <RefreshCw size={15} className="text-gray-400" />
+            className="p-2.5 border rounded-xl transition-colors"
+            style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
+            <RefreshCw size={14} style={{ color: '#8BA898' }} />
           </button>
           <button onClick={handleCreatePPT} disabled={generating || !photos.length}
-            className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-4 py-2.5 rounded-xl transition-colors shadow-lg shadow-red-100 text-sm">
-            {generating ? <><Loader2 size={16} className="animate-spin" /> Generating…</> : <><FileDown size={16} /> Create PPT</>}
+            className="flex items-center gap-2 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#2D6A4F' }}>
+            {generating ? <><Loader2 size={15} className="animate-spin" /> Generating…</> : <><FileDown size={15} /> Create PPT</>}
           </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:pt-0 pt-4 pb-4">
 
-        {/* ── Project Files (RACCE + Installation) ─────────────────── */}
+        {/* ── Project Files ─────────────────────────────────────────── */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <FolderOpen size={16} className="text-gray-400" />
-            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Project Files</h2>
+            <FolderOpen size={14} style={{ color: '#8BA898' }} />
+            <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#8BA898' }}>
+              Project Files
+            </h2>
           </div>
-          <ProjectFilesSection
-            projectId={id}
-            user={user}
-            files={files}
-            onFilesChanged={loadFiles}
-          />
+          <ProjectFilesSection projectId={id} user={user} files={files} onFilesChanged={loadFiles} />
         </div>
 
         {/* ── Photo Gallery ─────────────────────────────────────────── */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <Camera size={16} className="text-gray-400" />
-            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Site Photos</h2>
+            <Camera size={14} style={{ color: '#8BA898' }} />
+            <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#8BA898' }}>
+              Site Photos
+            </h2>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
+                style={{ borderColor: '#2D6A4F', borderTopColor: 'transparent' }} />
             </div>
           ) : photos.length === 0 ? (
             <div className="text-center py-14">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-3xl mb-3">
-                <Camera size={28} className="text-gray-300" />
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-3"
+                style={{ backgroundColor: '#EDE0C0' }}>
+                <Camera size={26} style={{ color: '#B8A06A' }} />
               </div>
-              <p className="text-base font-bold text-gray-400 mb-1">No photos yet</p>
-              <p className="text-sm text-gray-300 mb-5">Tap the + button to add your first banner photo</p>
+              <p className="text-base font-light mb-1" style={{ color: '#1B3A2A' }}>No photos yet</p>
+              <p className="text-sm font-light mb-5" style={{ color: '#8BA898' }}>
+                Tap the + button to add your first banner photo
+              </p>
               <button onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-red-100">
-                <Plus size={18} /> Add First Photo
+                className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-2xl text-sm"
+                style={{ backgroundColor: '#2D6A4F' }}>
+                <Plus size={17} /> Add First Photo
               </button>
             </div>
           ) : (
@@ -179,17 +195,19 @@ export default function ProjectPage() {
       </div>
 
       {/* Mobile bottom action bar */}
-      <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-100 shadow-lg px-4 py-3 flex gap-2"
-        style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 border-t px-4 py-3 flex gap-2"
+        style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         <button onClick={() => setShowAdd(true)}
-          className="flex-1 flex items-center justify-center gap-2 border-2 border-primary-500 text-primary-500 font-bold py-3 rounded-2xl active:bg-primary-50 transition-colors text-sm">
-          <Plus size={18} /> Add Photo
+          className="flex-1 flex items-center justify-center gap-2 border-2 font-semibold py-3 rounded-2xl transition-colors text-sm"
+          style={{ borderColor: '#2D6A4F', color: '#2D6A4F' }}>
+          <Plus size={17} /> Add Photo
         </button>
         <button onClick={handleCreatePPT} disabled={generating || !photos.length}
-          className="flex-1 flex items-center justify-center gap-2 bg-primary-500 active:bg-primary-600 disabled:opacity-50 text-white font-bold py-3 rounded-2xl transition-colors text-sm shadow-lg shadow-red-100">
+          className="flex-1 flex items-center justify-center gap-2 text-white font-semibold py-3 rounded-2xl transition-colors text-sm disabled:opacity-50"
+          style={{ backgroundColor: '#2D6A4F' }}>
           {generating
-            ? <><Loader2 size={16} className="animate-spin" /> Generating…</>
-            : <><FileDown size={16} /> Create PPT</>}
+            ? <><Loader2 size={15} className="animate-spin" /> Generating…</>
+            : <><FileDown size={15} /> Create PPT</>}
         </button>
       </div>
 
@@ -208,32 +226,35 @@ function PhotoCard({ group, onClick }) {
   const multiEntry = group.length > 1;
   return (
     <div onClick={onClick}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 active:scale-[0.97] transition-all cursor-pointer group">
-      <div className="relative h-40 sm:h-44 overflow-hidden bg-gray-100">
+      className="rounded-2xl overflow-hidden border cursor-pointer group active:scale-[0.97] transition-all hover:shadow-md"
+      style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
+      <div className="relative h-40 sm:h-44 overflow-hidden" style={{ backgroundColor: '#EDE0C0' }}>
         <img src={first.image_url} alt="Banner"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         {first.material && (
-          <span className="absolute top-2 left-2 bg-primary-500/90 backdrop-blur text-white text-xs font-bold px-2 py-0.5 rounded-full">
+          <span className="absolute top-2 left-2 backdrop-blur text-white text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'rgba(45,106,79,0.85)' }}>
             {first.material}{multiEntry ? ` +${group.length - 1}` : ''}
           </span>
         )}
         {multiEntry && !first.material && (
-          <span className="absolute top-2 left-2 bg-black/50 backdrop-blur text-white text-xs font-bold px-2 py-0.5 rounded-full">
+          <span className="absolute top-2 left-2 backdrop-blur text-white text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
             {group.length} entries
           </span>
         )}
       </div>
       <div className="p-2.5 space-y-1">
         {first.location && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <MapPin size={10} className="text-primary-500 flex-shrink-0" />
-            <span className="truncate">{first.location}</span>
+          <div className="flex items-center gap-1 text-xs" style={{ color: '#5A7A65' }}>
+            <MapPin size={10} style={{ color: '#2D6A4F' }} className="flex-shrink-0" />
+            <span className="truncate font-light">{first.location}</span>
           </div>
         )}
         {(first.length || first.breadth || first.height) && (
-          <div className="flex items-center gap-1 text-xs text-gray-400">
+          <div className="flex items-center gap-1 text-xs" style={{ color: '#8BA898' }}>
             <Ruler size={10} className="flex-shrink-0" />
-            <span className="truncate">
+            <span className="truncate font-light">
               {[first.length && `L:${first.length}`, first.breadth && `B:${first.breadth}`, first.height && `H:${first.height}`].filter(Boolean).join(' ')}
             </span>
           </div>

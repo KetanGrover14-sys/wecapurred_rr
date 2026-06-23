@@ -48,8 +48,8 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
   const inputRef = useRef(null);
 
   const colorMap = {
-    blue:   { ring: 'ring-blue-200',   bg: 'bg-blue-50',   btn: 'bg-blue-500 hover:bg-blue-600',   text: 'text-blue-600', border: 'border-blue-100' },
-    purple: { ring: 'ring-purple-200', bg: 'bg-purple-50', btn: 'bg-purple-500 hover:bg-purple-600', text: 'text-purple-600', border: 'border-purple-100' },
+    blue:   { bg: '#EDE0C0', btnBg: '#2D6A4F', border: '#DDD3B0' },
+    purple: { bg: '#d8f3e6', btnBg: '#1F5C3F', border: '#b1e7cc' },
   };
   const c = colorMap[accentColor];
 
@@ -72,13 +72,14 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
   };
 
   return (
-    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden`}>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#FEFAF0', border: `1px solid ${c.border}` }}>
       {/* Header */}
-      <div className={`flex items-center justify-between px-4 py-3 ${c.bg} border-b ${c.border}`}>
+      <div className="flex items-center justify-between px-4 py-3"
+        style={{ backgroundColor: c.bg, borderBottom: `1px solid ${c.border}` }}>
         <div className="flex items-center gap-2">
           {icon}
-          <span className="font-bold text-gray-800 text-sm">{title}</span>
-          <span className="text-xs text-gray-400">({files.length})</span>
+          <span className="font-semibold text-sm" style={{ color: '#1B3A2A' }}>{title}</span>
+          <span className="text-xs font-light" style={{ color: '#8BA898' }}>({files.length})</span>
         </div>
         {canUpload && (
           <>
@@ -86,7 +87,8 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
             <button
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className={`flex items-center gap-1.5 ${c.btn} disabled:opacity-60 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors`}>
+              className="flex items-center gap-1.5 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors disabled:opacity-60"
+              style={{ backgroundColor: c.btnBg }}>
               {uploading
                 ? <><Loader2 size={13} className="animate-spin" /> {progress}%</>
                 : <><Upload size={13} /> Upload</>}
@@ -96,17 +98,17 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
       </div>
 
       {uploadError && (
-        <div className="px-4 py-2 bg-red-50 text-red-600 text-xs font-medium border-b border-red-100">
+        <div className="px-4 py-2 text-xs font-medium" style={{ backgroundColor: '#fff0f0', color: '#c0392b', borderBottom: '1px solid #fcc' }}>
           {uploadError}
         </div>
       )}
 
       {files.length === 0 ? (
-        <div className="px-4 py-5 text-center text-gray-400 text-sm">
+        <div className="px-4 py-5 text-center text-sm font-light" style={{ color: '#8BA898' }}>
           {canUpload ? 'No files yet — click Upload to add one.' : 'No files uploaded yet.'}
         </div>
       ) : (
-        <ul className="divide-y divide-gray-50">
+        <ul className="divide-y" style={{ borderColor: '#EDE0C0' }}>
           {files.map((file) => (
             <FileRow
               key={file.id}
@@ -130,11 +132,7 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
   const [deleting, setDeleting]   = useState(false);
   const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : '';
 
-  const colorMap = {
-    blue:   { dl: 'bg-blue-50 hover:bg-blue-100 text-blue-700' },
-    purple: { dl: 'bg-purple-50 hover:bg-purple-100 text-purple-700' },
-  };
-  const c = colorMap[accentColor];
+  const dlStyle = { backgroundColor: '#EDE0C0', color: '#1B4332' };
 
   const fmtDate = (ts) => ts
     ? new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })
@@ -165,10 +163,12 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
   const statusCfg = file.status ? STATUS_CONFIG[file.status] : null;
 
   return (
-    <li className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group">
+    <li className="flex items-start gap-3 px-4 py-3 transition-colors group"
+      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F5EDD6'}
+      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 truncate">{file.file_name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-sm font-semibold truncate" style={{ color: '#1B3A2A' }}>{file.file_name}</p>
+        <p className="text-xs font-light mt-0.5" style={{ color: '#8BA898' }}>
           By {file.uploaded_by_name} · {fmtDate(file.created_at)}
         </p>
 
@@ -202,15 +202,17 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
 
         {/* Download via proxy — token in query param since <a href> can't set headers */}
         <a href={`/api/projects/${projectId}/files/${file.id}/download?token=${token}`}
-          className={`flex items-center gap-1 px-2.5 py-1.5 ${c.dl} text-xs font-semibold rounded-xl transition-colors`}>
+          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl transition-colors"
+          style={dlStyle}>
           <Download size={12} /> Download
         </a>
 
         {/* Delete */}
         {canDelete && (
           <button onClick={handleDelete} disabled={deleting}
-            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50">
-            {deleting ? <Loader2 size={14} className="animate-spin text-gray-400" /> : <Trash2 size={14} />}
+            className="p-1.5 rounded-xl transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 disabled:opacity-50 hover:bg-red-50 hover:text-red-500"
+            style={{ color: '#B8A06A' }}>
+            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
           </button>
         )}
       </div>

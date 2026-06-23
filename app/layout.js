@@ -10,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 min-h-screen antialiased">
+      <body className="min-h-screen antialiased" style={{ backgroundColor: '#F5EDD6' }}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

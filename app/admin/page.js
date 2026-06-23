@@ -59,83 +59,99 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5EDD6' }}>
       <Navbar />
 
-      <div className="bg-gradient-to-br from-amber-600 via-amber-500 to-orange-400 text-white">
+      <div style={{ background: 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 55%, #40916C 100%)' }}>
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 rounded-2xl p-2.5">
-                <ShieldCheck size={22} className="text-white" />
+              <div className="rounded-2xl p-2.5" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+                <ShieldCheck size={21} className="text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-black">Admin Panel</h1>
-                <p className="text-amber-100 text-sm">Manage vendor accounts</p>
+                <h1 className="text-2xl font-light text-white">Admin Panel</h1>
+                <p className="text-sm font-light" style={{ color: '#95D5B2' }}>Manage vendor accounts</p>
               </div>
             </div>
-            <button onClick={load} className="p-2.5 bg-white/15 hover:bg-white/25 rounded-xl transition-colors">
-              <RefreshCw size={18} />
+            <button onClick={load} className="p-2.5 rounded-xl transition-colors"
+              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+              <RefreshCw size={17} className="text-white" />
             </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-24">
-        {/* Add vendor button / form */}
         {!showForm ? (
           <button onClick={() => setShowForm(true)}
-            className="mb-6 flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-red-100 transition-colors">
-            <Plus size={18} /> Add Vendor
+            className="mb-6 flex items-center gap-2 text-white font-semibold px-5 py-3 rounded-2xl text-sm transition-colors"
+            style={{ backgroundColor: '#2D6A4F' }}>
+            <Plus size={17} /> Add Vendor
           </button>
         ) : (
-          <div className="mb-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="mb-6 rounded-2xl border p-5"
+            style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-gray-800 text-lg">New Vendor</h2>
+              <h2 className="font-semibold text-lg" style={{ color: '#1B3A2A' }}>New Vendor</h2>
               <button onClick={() => { setShowForm(false); setFormError(''); }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-                <X size={18} />
+                className="p-1.5 rounded-xl transition-colors hover:bg-gray-100"
+                style={{ color: '#8BA898' }}>
+                <X size={17} />
               </button>
             </div>
             {formError && (
-              <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-2.5 mb-4 text-sm font-medium">
+              <div className="rounded-xl px-4 py-2.5 mb-4 text-sm font-medium border"
+                style={{ backgroundColor: '#fff0f0', borderColor: '#fcc', color: '#c0392b' }}>
                 {formError}
               </div>
             )}
             <form onSubmit={handleCreate} className="space-y-3">
+              {[
+                { label: 'Full Name', key: 'name', type: 'text', val: name, set: setName, ph: 'Vendor Name' },
+                { label: 'Email', key: 'email', type: 'email', val: email, set: setEmail, ph: 'vendor@company.com' },
+              ].map(({ label, type, val, set: setter, ph }) => (
+                <div key={label}>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1"
+                    style={{ color: '#5A7A65' }}>{label}</label>
+                  <input required type={type} value={val} onChange={(e) => setter(e.target.value)}
+                    placeholder={ph}
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                    style={{ border: '1.5px solid #DDD3B0', backgroundColor: '#F5EDD6', color: '#1B3A2A', fontFamily: 'Outfit, sans-serif', fontWeight: 300 }}
+                    onFocus={(e) => { e.target.style.borderColor = '#2D6A4F'; e.target.style.boxShadow = '0 0 0 3px rgba(45,106,79,0.12)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = '#DDD3B0'; e.target.style.boxShadow = 'none'; }}
+                  />
+                </div>
+              ))}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
-                <input required value={name} onChange={(e) => setName(e.target.value)}
-                  placeholder="Vendor Name"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm bg-gray-50" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vendor@company.com"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm bg-gray-50" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1"
+                  style={{ color: '#5A7A65' }}>Password</label>
                 <div className="relative">
                   <input required type={showPwd ? 'text' : 'password'} value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Set a strong password"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm bg-gray-50 pr-11" />
+                    className="w-full px-4 py-3 rounded-xl text-sm outline-none pr-11"
+                    style={{ border: '1.5px solid #DDD3B0', backgroundColor: '#F5EDD6', color: '#1B3A2A', fontFamily: 'Outfit, sans-serif', fontWeight: 300 }}
+                    onFocus={(e) => { e.target.style.borderColor = '#2D6A4F'; e.target.style.boxShadow = '0 0 0 3px rgba(45,106,79,0.12)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = '#DDD3B0'; e.target.style.boxShadow = 'none'; }}
+                  />
                   <button type="button" onClick={() => setShowPwd(!showPwd)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
-                    {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
+                    style={{ color: '#8BA898' }}>
+                    {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
               </div>
               <div className="flex gap-2 pt-1">
                 <button type="button" onClick={() => { setShowForm(false); setFormError(''); }}
-                  className="flex-1 py-3 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm">
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm transition-colors"
+                  style={{ border: '1.5px solid #DDD3B0', color: '#5A7A65', backgroundColor: 'transparent' }}>
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 disabled:opacity-70 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
-                  {saving ? <><Loader2 size={15} className="animate-spin" /> Creating…</> : 'Create Vendor'}
+                  className="flex-1 py-3 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-70"
+                  style={{ backgroundColor: '#2D6A4F' }}>
+                  {saving ? <><Loader2 size={14} className="animate-spin" /> Creating…</> : 'Create Vendor'}
                 </button>
               </div>
             </form>
@@ -143,37 +159,50 @@ export default function AdminPage() {
         )}
 
         {/* Vendor list */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-50">
-            <h2 className="font-bold text-gray-800">Vendors <span className="text-gray-400 font-normal text-sm">({vendors.length})</span></h2>
+        <div className="rounded-2xl border overflow-hidden"
+          style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid #EDE0C0' }}>
+            <h2 className="font-semibold" style={{ color: '#1B3A2A' }}>
+              Vendors <span className="font-light text-sm" style={{ color: '#8BA898' }}>({vendors.length})</span>
+            </h2>
           </div>
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin"
+                style={{ borderColor: '#2D6A4F', borderTopColor: 'transparent' }} />
             </div>
           ) : vendors.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
-              <User size={36} className="mx-auto mb-3 text-gray-200" />
-              <p className="font-semibold">No vendors yet</p>
-              <p className="text-sm">Add your first vendor above</p>
+            <div className="text-center py-16" style={{ color: '#8BA898' }}>
+              <User size={34} className="mx-auto mb-3" style={{ color: '#CAB98A' }} />
+              <p className="font-semibold text-sm">No vendors yet</p>
+              <p className="text-sm font-light">Add your first vendor above</p>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y" style={{ '--tw-divide-opacity': 1, borderColor: '#EDE0C0' }}>
               {vendors.map((v) => (
-                <li key={v.id} className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors group">
-                  <div className="w-10 h-10 rounded-full bg-primary-50 border border-primary-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-primary-600 font-bold text-sm">{v.name[0].toUpperCase()}</span>
+                <li key={v.id}
+                  className="flex items-center gap-3 px-5 py-4 transition-colors group"
+                  style={{ '--hover-bg': '#F5EDD6' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F5EDD6'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: '#EDE0C0', border: '1px solid #DDD3B0' }}>
+                    <span className="font-semibold text-sm" style={{ color: '#2D6A4F' }}>
+                      {v.name[0].toUpperCase()}
+                    </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 text-sm truncate">{v.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{v.email}</p>
+                    <p className="font-semibold text-sm truncate" style={{ color: '#1B3A2A' }}>{v.name}</p>
+                    <p className="text-xs font-light truncate" style={{ color: '#8BA898' }}>{v.email}</p>
                   </div>
-                  <span className="hidden sm:block text-xs bg-blue-50 text-blue-600 font-semibold px-2.5 py-1 rounded-full capitalize">
+                  <span className="hidden sm:block text-xs font-semibold px-2.5 py-1 rounded-full capitalize"
+                    style={{ backgroundColor: '#d8f3e6', color: '#1B4332' }}>
                     {v.role}
                   </span>
                   <button onClick={() => handleDelete(v.id, v.name)}
-                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100">
-                    <Trash2 size={16} />
+                    className="p-2 rounded-xl transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 hover:bg-red-50 hover:text-red-500"
+                    style={{ color: '#B8A06A' }}>
+                    <Trash2 size={15} />
                   </button>
                 </li>
               ))}

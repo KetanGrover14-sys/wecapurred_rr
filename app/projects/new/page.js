@@ -36,57 +36,63 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5EDD6' }}>
       <Navbar />
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-primary-700 via-primary-500 to-red-400 text-white px-4 sm:px-6 lg:px-8 pt-5 pb-8 max-w-7xl mx-auto">
+      <div style={{ background: 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 55%, #40916C 100%)' }}
+        className="px-4 sm:px-6 lg:px-8 pt-5 pb-8 max-w-7xl mx-auto">
         <button onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-red-200 active:text-white transition-colors text-sm mb-4">
-          <ArrowLeft size={15} /> Back
+          className="flex items-center gap-1.5 text-sm mb-4 transition-opacity hover:opacity-80"
+          style={{ color: '#95D5B2' }}>
+          <ArrowLeft size={14} /> Back
         </button>
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-            <FolderPlus size={22} />
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
+            <FolderPlus size={21} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-black">New Project</h1>
-            <p className="text-red-200 text-sm">Fill in the details below</p>
+            <h1 className="text-2xl font-light text-white">New Project</h1>
+            <p className="text-sm font-light" style={{ color: '#95D5B2' }}>Fill in the details below</p>
           </div>
         </div>
       </div>
 
       {/* Form card */}
       <div className="max-w-lg mx-auto px-4 sm:px-6 -mt-4">
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="rounded-3xl border overflow-hidden"
+          style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 rounded-2xl px-4 py-3 text-sm font-medium">
+              <div className="rounded-2xl px-4 py-3 text-sm font-medium border"
+                style={{ backgroundColor: '#fff0f0', borderColor: '#fcc', color: '#c0392b' }}>
                 {error}
               </div>
             )}
 
-            <FormField label="Project Name *" icon={<FolderPlus size={16} className="text-primary-500" />}>
+            <FormField label="Project Name *" icon={<FolderPlus size={15} style={{ color: '#2D6A4F' }} />}>
               <input required value={form.name} onChange={set('name')} maxLength={80}
                 placeholder="e.g. Metro Station Campaign"
                 className="input-field" />
             </FormField>
 
-            <FormField label="Client Name *" icon={<Building2 size={16} className="text-primary-500" />}>
+            <FormField label="Client Name *" icon={<Building2 size={15} style={{ color: '#2D6A4F' }} />}>
               <input required value={form.clientName} onChange={set('clientName')} maxLength={80}
                 placeholder="e.g. Reliance Industries"
                 className="input-field" />
             </FormField>
 
-            <FormField label="Description" icon={<AlignLeft size={16} className="text-gray-400" />}>
+            <FormField label="Description" icon={<AlignLeft size={15} style={{ color: '#8BA898' }} />}>
               <textarea value={form.description} onChange={set('description')} maxLength={300} rows={3}
                 placeholder="Brief description (optional)"
                 className="input-field resize-none" />
             </FormField>
 
             <button type="submit" disabled={loading}
-              className="w-full bg-primary-500 hover:bg-primary-600 active:bg-primary-700 disabled:opacity-70 text-white font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-base shadow-lg shadow-red-100 mt-2">
-              {loading ? <><Loader2 size={18} className="animate-spin" /> Creating…</> : 'Create Project'}
+              className="w-full text-white font-semibold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-sm mt-2 disabled:opacity-70"
+              style={{ backgroundColor: '#2D6A4F' }}>
+              {loading ? <><Loader2 size={17} className="animate-spin" /> Creating…</> : 'Create Project'}
             </button>
           </form>
         </div>
@@ -95,16 +101,19 @@ export default function NewProjectPage() {
       <style jsx global>{`
         .input-field {
           width: 100%; padding: 0.85rem 1rem;
-          border: 1.5px solid #e5e7eb; border-radius: 1rem;
-          font-size: 1rem; color: #111827;
-          outline: none; background: #f9fafb;
+          border: 1.5px solid #DDD3B0; border-radius: 1rem;
+          font-size: 0.925rem; color: #1B3A2A;
+          outline: none; background: #F5EDD6;
           transition: border-color 0.15s, box-shadow 0.15s;
+          font-family: Outfit, sans-serif;
+          font-weight: 300;
           -webkit-appearance: none;
         }
+        .input-field::placeholder { color: #B8A06A; }
         .input-field:focus {
-          border-color: #CC0000;
-          box-shadow: 0 0 0 3px rgba(204,0,0,0.1);
-          background: white;
+          border-color: #2D6A4F;
+          box-shadow: 0 0 0 3px rgba(45,106,79,0.12);
+          background: #FEFAF0;
         }
       `}</style>
     </div>
@@ -113,7 +122,8 @@ export default function NewProjectPage() {
 
 const FormField = ({ label, icon, children }) => (
   <div>
-    <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-2">
+    <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-2"
+      style={{ color: '#5A7A65' }}>
       {icon} {label}
     </label>
     {children}

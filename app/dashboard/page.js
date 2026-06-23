@@ -12,7 +12,6 @@ export default function DashboardPage() {
   const [projects, setProjects]   = useState([]);
   const [search, setSearch]       = useState('');
   const [loading, setLoading]     = useState(true);
-  const [searchOpen, setSearchOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,56 +47,69 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5EDD6' }}>
       <Navbar />
 
       {/* Hero header */}
-      <div className="bg-gradient-to-br from-primary-700 via-primary-500 to-red-400 text-white">
+      <div style={{ background: 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 55%, #40916C 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black mt-0.5">
+              <p className="text-xs font-light tracking-widest uppercase mb-0.5" style={{ color: '#95D5B2' }}>
+                {user?.role === 'admin' ? 'All Vendors' : 'My Workspace'}
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-light text-white">
                 {user?.role === 'admin' ? 'All Projects' : 'My Projects'}
               </h1>
-              {user?.role === 'admin' && (
-                <p className="text-red-200 text-xs mt-0.5">Viewing all vendors' projects</p>
-              )}
             </div>
             <div className="flex items-center gap-2">
               {user?.role === 'admin' && (
                 <button onClick={() => router.push('/admin')}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-semibold transition-colors">
-                  <ShieldCheck size={14} /> Admin
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: '#D8F3DC' }}>
+                  <ShieldCheck size={13} /> Admin
                 </button>
               )}
               <button onClick={load}
-                className="p-2.5 bg-white/15 hover:bg-white/25 active:bg-white/30 rounded-xl transition-colors">
-                <RefreshCw size={18} />
+                className="p-2.5 rounded-xl transition-colors"
+                style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+                <RefreshCw size={17} className="text-white" />
               </button>
             </div>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <div className="bg-white/15 backdrop-blur rounded-2xl p-4">
-              <p className="text-red-200 text-xs font-medium mb-1">Projects</p>
-              <p className="text-4xl font-black">{projects.length}</p>
+            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+              <p className="text-xs font-light mb-1" style={{ color: '#95D5B2' }}>Projects</p>
+              <p className="text-4xl font-light text-white">{projects.length}</p>
             </div>
-            <div className="bg-white/15 backdrop-blur rounded-2xl p-4">
-              <p className="text-red-200 text-xs font-medium mb-1">Total Photos</p>
-              <p className="text-4xl font-black">{totalPhotos}</p>
+            <div className="rounded-2xl p-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+              <p className="text-xs font-light mb-1" style={{ color: '#95D5B2' }}>Total Photos</p>
+              <p className="text-4xl font-light text-white">{totalPhotos}</p>
             </div>
           </div>
 
-          {/* Search bar */}
+          {/* Search */}
           <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/50" />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.4)' }} />
             <input value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search projects or clients…"
-              className="w-full pl-10 pr-4 py-3 bg-white/15 backdrop-blur border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:bg-white/25 transition-colors text-sm" />
+              className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm outline-none transition-colors"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'white',
+                fontFamily: 'Outfit, sans-serif',
+                fontWeight: 300,
+              }}
+              onFocus={(e) => { e.target.style.backgroundColor = 'rgba(255,255,255,0.18)'; }}
+              onBlur={(e) => { e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'; }}
+            />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white p-1">
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
+                style={{ color: 'rgba(255,255,255,0.5)' }}>
                 <X size={14} />
               </button>
             )}
@@ -109,23 +121,26 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-24">
         {loading ? (
           <div className="flex items-center justify-center py-24">
-            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: '#2D6A4F', borderTopColor: 'transparent' }} />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-3xl mb-4">
-              <Folder size={36} className="text-gray-300" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl mb-4"
+              style={{ backgroundColor: '#EDE0C0' }}>
+              <Folder size={34} style={{ color: '#B8A06A' }} />
             </div>
-            <p className="text-lg font-bold text-gray-400 mb-1">
+            <p className="text-lg font-light mb-1" style={{ color: '#1B3A2A' }}>
               {search ? 'No results found' : 'No projects yet'}
             </p>
-            <p className="text-sm text-gray-300 mb-6">
+            <p className="text-sm font-light mb-6" style={{ color: '#8BA898' }}>
               {search ? `Nothing matches "${search}"` : 'Tap the + button to create your first project'}
             </p>
             {!search && (
               <button onClick={() => router.push('/projects/new')}
-                className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-red-100 active:bg-primary-600 transition-colors">
-                <Plus size={18} /> New Project
+                className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-2xl text-sm transition-colors"
+                style={{ backgroundColor: '#2D6A4F' }}>
+                <Plus size={17} /> New Project
               </button>
             )}
           </div>
@@ -146,9 +161,10 @@ export default function DashboardPage() {
 
       {/* FAB */}
       <button onClick={() => router.push('/projects/new')}
-        className="fixed bottom-6 right-5 z-30 flex items-center gap-2 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white font-bold px-5 py-3.5 rounded-full shadow-xl shadow-red-200 transition-all active:scale-95">
-        <Plus size={20} />
-        <span className="text-sm">New Project</span>
+        className="fixed bottom-6 right-5 z-30 flex items-center gap-2 text-white font-semibold px-5 py-3.5 rounded-full shadow-xl transition-all active:scale-95 text-sm"
+        style={{ backgroundColor: '#2D6A4F', boxShadow: '0 8px 24px rgba(45,106,79,0.3)' }}>
+        <Plus size={19} />
+        <span>New Project</span>
       </button>
     </div>
   );
@@ -158,42 +174,49 @@ function ProjectCard({ project, onOpen, onDelete, fmtDate }) {
   const initials = project.name?.slice(0, 2).toUpperCase() || 'PR';
   return (
     <div onClick={onOpen}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm active:shadow-md active:scale-[0.98] transition-all cursor-pointer group overflow-hidden">
-      {/* Top color bar */}
-      <div className="h-1 bg-gradient-to-r from-primary-600 to-red-400" />
+      className="rounded-2xl border cursor-pointer group overflow-hidden transition-all hover:shadow-md active:scale-[0.98]"
+      style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
+      {/* Top accent bar */}
+      <div className="h-0.5" style={{ background: 'linear-gradient(90deg, #2D6A4F, #40916C)' }} />
       <div className="p-4">
         <div className="flex items-start gap-3">
-          {/* Avatar */}
-          <div className="w-11 h-11 rounded-xl bg-primary-50 border border-primary-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-600 font-black text-sm">{initials}</span>
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: '#EDE0C0', border: '1px solid #DDD3B0' }}>
+            <span className="font-semibold text-sm" style={{ color: '#2D6A4F' }}>{initials}</span>
           </div>
-
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-bold text-gray-900 text-base leading-snug truncate">{project.name}</h3>
+              <h3 className="font-semibold text-base leading-snug truncate" style={{ color: '#1B3A2A' }}>
+                {project.name}
+              </h3>
               <button onClick={onDelete}
-                className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors flex-shrink-0 -mt-0.5 opacity-0 group-hover:opacity-100 sm:opacity-100">
+                className="p-1.5 rounded-lg transition-colors flex-shrink-0 -mt-0.5 opacity-0 group-hover:opacity-100 sm:opacity-100 hover:bg-red-50 hover:text-red-500"
+                style={{ color: '#B8A06A' }}>
                 <Trash2 size={14} />
               </button>
             </div>
-            <p className="text-sm text-gray-400 truncate mt-0.5">{project.client_name}</p>
+            <p className="text-sm font-light truncate mt-0.5" style={{ color: '#5A7A65' }}>
+              {project.client_name}
+            </p>
           </div>
         </div>
 
         {project.description && (
-          <p className="text-xs text-gray-400 line-clamp-2 mt-2.5 ml-14">{project.description}</p>
+          <p className="text-xs font-light line-clamp-2 mt-2.5 ml-14" style={{ color: '#8BA898' }}>
+            {project.description}
+          </p>
         )}
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50 ml-14">
-          <div className="flex items-center gap-3 text-xs text-gray-400">
-            <span className="flex items-center gap-1 font-semibold text-primary-500">
+        <div className="flex items-center justify-between mt-3 pt-3 ml-14" style={{ borderTop: '1px solid #EDE0C0' }}>
+          <div className="flex items-center gap-3 text-xs" style={{ color: '#8BA898' }}>
+            <span className="flex items-center gap-1 font-semibold" style={{ color: '#2D6A4F' }}>
               <Images size={12} /> {project.photo_count || 0} photos
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 font-light">
               <Calendar size={11} /> {fmtDate(project.created_at)}
             </span>
           </div>
-          <ChevronRight size={15} className="text-gray-300 group-hover:text-primary-400 transition-colors" />
+          <ChevronRight size={15} style={{ color: '#B8A06A' }} className="group-hover:text-forest-600 transition-colors" />
         </div>
       </div>
     </div>

@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../components/AuthProvider';
-import { Eye, EyeOff, Loader2, Camera, Image, FileText, Share2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
@@ -39,78 +40,100 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  const features = [
-    { icon: Camera,    label: 'Capture Photos' },
-    { icon: FileText,  label: 'Add Specs'       },
-    { icon: Image,     label: 'Build Gallery'   },
-    { icon: Share2,    label: 'Export PPT'      },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Brand header strip */}
-      <div className="bg-gradient-to-r from-primary-700 via-primary-500 to-red-400 text-white px-6 pt-14 pb-10 text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur rounded-2xl mb-4 shadow-lg">
-          <Camera size={30} className="text-white" />
-        </div>
-        <h1 className="text-4xl font-black tracking-tight">Norrvex Partner</h1>
-        <p className="text-red-100 mt-1 text-base">Banner &amp; Hoarding Solutions</p>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#F5EDD6' }}>
 
-        <div className="flex justify-center gap-3 mt-6 flex-wrap">
-          {features.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-1.5 bg-white/15 backdrop-blur rounded-full px-3 py-1.5 text-xs font-medium">
-              <Icon size={12} /> {label}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Top decorative bar */}
+      <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #1B4332, #2D6A4F, #40916C)' }} />
 
-      {/* Login card */}
-      <div className="flex-1 flex items-start justify-center px-4 -mt-5">
-        <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl p-7 pt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
-          <p className="text-gray-400 text-sm mb-6">Sign in to your account</p>
+      {/* Center content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
+
+        {/* Logo */}
+        <div className="mb-8 flex flex-col items-center gap-3">
+          <Image src="/images/norrvexlabs.png" alt="Norrvex Partner" width={200} height={60}
+            style={{ objectFit: 'contain', height: '52px', width: 'auto' }} priority />
+          <p className="text-sm font-light tracking-widest uppercase" style={{ color: '#5A7A65', letterSpacing: '0.2em' }}>
+            Partner Portal
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="w-full max-w-sm rounded-3xl p-8 shadow-sm border"
+          style={{ backgroundColor: '#FEFAF0', borderColor: '#DDD3B0' }}>
+
+          <h2 className="text-2xl font-light mb-1" style={{ color: '#1B3A2A' }}>Welcome back</h2>
+          <p className="text-sm mb-7 font-light" style={{ color: '#8BA898' }}>Sign in to your account</p>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 mb-5 text-sm font-medium">
+            <div className="rounded-xl px-4 py-3 mb-5 text-sm font-medium border"
+              style={{ backgroundColor: '#fff0f0', borderColor: '#fcc', color: '#c0392b' }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider"
+                style={{ color: '#5A7A65' }}>Email</label>
               <input type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-gray-50 text-base"
-                placeholder="you@company.com" />
+                placeholder="you@company.com"
+                className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all border"
+                style={{
+                  backgroundColor: '#F5EDD6',
+                  borderColor: '#DDD3B0',
+                  color: '#1B3A2A',
+                  fontFamily: 'Outfit, sans-serif',
+                  fontWeight: 300,
+                }}
+                onFocus={(e) => { e.target.style.borderColor = '#2D6A4F'; e.target.style.boxShadow = '0 0 0 3px rgba(45,106,79,0.12)'; }}
+                onBlur={(e) => { e.target.style.borderColor = '#DDD3B0'; e.target.style.boxShadow = 'none'; }}
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider"
+                style={{ color: '#5A7A65' }}>Password</label>
               <div className="relative">
                 <input type={showPwd ? 'text' : 'password'} required value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
-                  className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-gray-50 pr-12 text-base"
-                  placeholder="••••••••" />
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all border pr-12"
+                  style={{
+                    backgroundColor: '#F5EDD6',
+                    borderColor: '#DDD3B0',
+                    color: '#1B3A2A',
+                    fontFamily: 'Outfit, sans-serif',
+                    fontWeight: 300,
+                  }}
+                  onFocus={(e) => { e.target.style.borderColor = '#2D6A4F'; e.target.style.boxShadow = '0 0 0 3px rgba(45,106,79,0.12)'; }}
+                  onBlur={(e) => { e.target.style.borderColor = '#DDD3B0'; e.target.style.boxShadow = 'none'; }}
+                />
                 <button type="button" onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
-                  {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 transition-colors"
+                  style={{ color: '#8BA898' }}>
+                  {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
             </div>
 
             <button type="submit" disabled={loading}
-              className="w-full bg-primary-500 hover:bg-primary-600 active:bg-primary-700 disabled:opacity-70 text-white font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2 text-base shadow-lg shadow-red-200 mt-2">
-              {loading ? <><Loader2 size={18} className="animate-spin" /> Signing in…</> : 'Sign In'}
+              className="w-full py-4 rounded-2xl font-semibold text-sm text-white transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{ backgroundColor: '#2D6A4F' }}
+              onMouseEnter={(e) => { if (!loading) e.target.style.backgroundColor = '#1B4332'; }}
+              onMouseLeave={(e) => { if (!loading) e.target.style.backgroundColor = '#2D6A4F'; }}>
+              {loading ? <><Loader2 size={17} className="animate-spin" /> Signing in…</> : 'Sign In'}
             </button>
           </form>
         </div>
-      </div>
 
-      <p className="text-center text-xs text-gray-300 py-6">© 2025 Norrvex Partner. All rights reserved.</p>
+        <p className="text-xs font-light mt-8" style={{ color: '#B8A06A' }}>
+          © 2025 Norrvex Labs. All rights reserved.
+        </p>
+      </div>
     </div>
   );
 }
