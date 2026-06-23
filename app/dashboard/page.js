@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../components/AuthProvider';
 import Navbar from '../../components/Navbar';
 import { getProjects, deleteProject } from '../../lib/apiService';
-import { Plus, Search, Folder, Images, Calendar, ChevronRight, Trash2, RefreshCw, X } from 'lucide-react';
+import { Plus, Search, Folder, Images, Calendar, ChevronRight, Trash2, RefreshCw, X, ShieldCheck } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user }   = useAuth();
@@ -56,12 +56,25 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black mt-0.5">My Projects</h1>
+              <h1 className="text-2xl sm:text-3xl font-black mt-0.5">
+                {user?.role === 'admin' ? 'All Projects' : 'My Projects'}
+              </h1>
+              {user?.role === 'admin' && (
+                <p className="text-red-200 text-xs mt-0.5">Viewing all vendors' projects</p>
+              )}
             </div>
-            <button onClick={load}
-              className="p-2.5 bg-white/15 hover:bg-white/25 active:bg-white/30 rounded-xl transition-colors">
-              <RefreshCw size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              {user?.role === 'admin' && (
+                <button onClick={() => router.push('/admin')}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-semibold transition-colors">
+                  <ShieldCheck size={14} /> Admin
+                </button>
+              )}
+              <button onClick={load}
+                className="p-2.5 bg-white/15 hover:bg-white/25 active:bg-white/30 rounded-xl transition-colors">
+                <RefreshCw size={18} />
+              </button>
+            </div>
           </div>
 
           {/* Stats */}

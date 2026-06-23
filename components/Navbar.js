@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
-import { Camera, LogOut } from 'lucide-react';
+import { Camera, LogOut, ShieldCheck } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -21,12 +21,20 @@ export default function Navbar() {
 
           {user && (
             <div className="flex items-center gap-2">
+              {user.role === 'admin' && (
+                <button
+                  onClick={() => router.push('/admin')}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-semibold transition-colors"
+                  title="Admin Panel">
+                  <ShieldCheck size={13} /> Admin Panel
+                </button>
+              )}
               <div className="hidden sm:block text-right mr-1">
                 <p className="text-xs font-semibold text-gray-700 leading-tight">{user.name || user.email?.split('@')[0]}</p>
-                <p className="text-xs text-gray-400">Employee</p>
+                <p className="text-xs text-gray-400 capitalize">{user.role || 'Vendor'}</p>
               </div>
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-primary-600 font-bold text-sm">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user.role === 'admin' ? 'bg-amber-100' : 'bg-primary-100'}`}>
+                <span className={`font-bold text-sm ${user.role === 'admin' ? 'text-amber-600' : 'text-primary-600'}`}>
                   {(user.name || user.email || 'U')[0].toUpperCase()}
                 </span>
               </div>

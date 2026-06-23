@@ -5,9 +5,10 @@ import { useAuth } from '../../../components/AuthProvider';
 import Navbar from '../../../components/Navbar';
 import AddPhotoModal from '../../../components/AddPhotoModal';
 import PhotoDetailModal from '../../../components/PhotoDetailModal';
-import { getProject, getPhotos } from '../../../lib/apiService';
+import ProjectFilesSection from '../../../components/ProjectFilesSection';
+import { getProject, getPhotos, getProjectFiles } from '../../../lib/apiService';
 import { generatePPT } from '../../../lib/pptService';
-import { ArrowLeft, Plus, FileDown, Images, MapPin, Ruler, Loader2, Camera, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, FileDown, MapPin, Ruler, Loader2, Camera, RefreshCw, FolderOpen } from 'lucide-react';
 
 export default function ProjectPage() {
   const { user }    = useAuth();
@@ -16,12 +17,12 @@ export default function ProjectPage() {
 
   const [project, setProject]       = useState(null);
   const [photos, setPhotos]         = useState([]);
+  const [files, setFiles]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [showAdd, setShowAdd]       = useState(false);
   const [selected, setSelected]     = useState(null);
   const [generating, setGenerating] = useState(false);
 
-  // Group flat photo rows by image_url → one card per unique image
   const groupedPhotos = useMemo(() => {
     const map = new Map();
     photos.forEach((p) => {
@@ -40,10 +41,18 @@ export default function ProjectPage() {
     finally { setLoading(false); }
   }, [id]);
 
+  const loadFiles = useCallback(async () => {
+    try {
+      const data = await getProjectFiles(id);
+      setFiles(Array.isArray(data) ? data : []);
+    } catch (e) { console.error(e); }
+  }, [id]);
+
   useEffect(() => {
     if (!user) { router.replace('/'); return; }
     getProject(id).then(setProject).catch(console.error);
     loadPhotos();
+    loadFiles();
   }, [id, user]);
 
   const handlePhotoAdded = async () => {
@@ -109,7 +118,7 @@ export default function ProjectPage() {
             className="flex items-center gap-2 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm text-sm">
             <Plus size={16} className="text-primary-500" /> Add Photo
           </button>
-          <button onClick={loadPhotos}
+          <button onClick={() => { loadPhotos(); loadFiles(); }}
             className="p-2.5 border border-gray-200 bg-white rounded-xl hover:bg-gray-50 transition-colors">
             <RefreshCw size={15} className="text-gray-400" />
           </button>
@@ -120,31 +129,53 @@ export default function ProjectPage() {
         </div>
       </div>
 
-      {/* Gallery */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:py-2">
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:pt-0 pt-4 pb-4">
+
+        {/* ── Project Files (RACCE + Installation) ─────────────────── */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <FolderOpen size={16} className="text-gray-400" />
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Project Files</h2>
           </div>
-        ) : photos.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-3xl mb-4">
-              <Camera size={32} className="text-gray-300" />
+          <ProjectFilesSection
+            projectId={id}
+            user={user}
+            files={files}
+            onFilesChanged={loadFiles}
+          />
+        </div>
+
+        {/* ── Photo Gallery ─────────────────────────────────────────── */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Camera size={16} className="text-gray-400" />
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Site Photos</h2>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
             </div>
-            <p className="text-lg font-bold text-gray-400 mb-1">No photos yet</p>
-            <p className="text-sm text-gray-300 mb-6">Tap the + button to add your first banner photo</p>
-            <button onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-red-100">
-              <Plus size={18} /> Add First Photo
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-4 sm:pt-0">
-            {groupedPhotos.map((group) => (
-              <PhotoCard key={group[0].image_url} group={group} onClick={() => setSelected(group)} />
-            ))}
-          </div>
-        )}
+          ) : photos.length === 0 ? (
+            <div className="text-center py-14">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-3xl mb-3">
+                <Camera size={28} className="text-gray-300" />
+              </div>
+              <p className="text-base font-bold text-gray-400 mb-1">No photos yet</p>
+              <p className="text-sm text-gray-300 mb-5">Tap the + button to add your first banner photo</p>
+              <button onClick={() => setShowAdd(true)}
+                className="inline-flex items-center gap-2 bg-primary-500 text-white font-bold px-6 py-3 rounded-2xl shadow-lg shadow-red-100">
+                <Plus size={18} /> Add First Photo
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {groupedPhotos.map((group) => (
+                <PhotoCard key={group[0].image_url} group={group} onClick={() => setSelected(group)} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile bottom action bar */}

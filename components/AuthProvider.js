@@ -4,28 +4,36 @@ import { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
-export const CREDENTIALS = {
-  email: 'ketangrover2002@gmail.com',
-  password: 'Rrgroup@987',
-};
+const TOKEN_KEY = 'wecapurred_token';
+const USER_KEY  = 'wecapurred_user';
 
 export default function AuthProvider({ children }) {
   const [user, setUser]       = useState(null);
+  const [token, setToken]     = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem('wecapurred_user');
-    if (stored) setUser(JSON.parse(stored));
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const storedUser  = localStorage.getItem(USER_KEY);
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      setUser(JSON.parse(storedUser));
+    }
     setLoading(false);
   }, []);
 
-  const login = (userData) => {
-    localStorage.setItem('wecapurred_user', JSON.stringify(userData));
-    setUser(userData);
+  // Called by login page after successful /api/auth/login response
+  const login = ({ token: t, user: u }) => {
+    localStorage.setItem(TOKEN_KEY, t);
+    localStorage.setItem(USER_KEY, JSON.stringify(u));
+    setToken(t);
+    setUser(u);
   };
 
   const logout = () => {
-    localStorage.removeItem('wecapurred_user');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setToken(null);
     setUser(null);
   };
 
@@ -41,7 +49,7 @@ export default function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

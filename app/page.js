@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, CREDENTIALS } from '../components/AuthProvider';
+import { useAuth } from '../components/AuthProvider';
 import { Eye, EyeOff, Loader2, Camera, Image, FileText, Share2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -20,15 +20,21 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 350));
-    if (
-      email.trim().toLowerCase() === CREDENTIALS.email &&
-      password === CREDENTIALS.password
-    ) {
-      login({ email: email.trim().toLowerCase(), name: 'Ketan Grover' });
-      router.replace('/dashboard');
-    } else {
-      setError('Invalid email or password.');
+    try {
+      const res  = await fetch('/api/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Invalid email or password.');
+      } else {
+        login(data);
+        router.replace('/dashboard');
+      }
+    } catch {
+      setError('Connection error. Please try again.');
     }
     setLoading(false);
   };
@@ -48,7 +54,7 @@ export default function LoginPage() {
           <Camera size={30} className="text-white" />
         </div>
         <h1 className="text-4xl font-black tracking-tight">Norrvex Partner</h1>
-        <p className="text-red-100 mt-1 text-base">Banner & Hoarding Solutions</p>
+        <p className="text-red-100 mt-1 text-base">Banner &amp; Hoarding Solutions</p>
 
         <div className="flex justify-center gap-3 mt-6 flex-wrap">
           {features.map(({ icon: Icon, label }) => (

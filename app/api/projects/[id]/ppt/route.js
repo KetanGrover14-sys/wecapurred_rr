@@ -1,5 +1,6 @@
 import pptxgen from 'pptxgenjs';
 import { getProjectById, getPhotosByProject } from '../../../../../lib/sheets';
+import { withAuth } from '../../../../../lib/withAuth';
 
 const RED      = 'CC0000';
 const RED_DARK = '990000';
@@ -25,13 +26,17 @@ const fetchImageAsBase64 = async (url) => {
   }
 };
 
-export async function GET(_, { params }) {
+export const GET = withAuth(async (request, { params }) => {
+  const { role, id: userId } = request.user;
   const [project, photos] = await Promise.all([
     getProjectById(params.id),
     getPhotosByProject(params.id),
   ]);
 
   if (!project) return Response.json({ error: 'Not found' }, { status: 404 });
+  if (role !== 'admin' && project.vendor_id !== userId) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   const prs = new pptxgen();
   prs.layout = 'LAYOUT_16x9';
@@ -160,4 +165,4 @@ export async function GET(_, { params }) {
       'Content-Disposition': `attachment; filename="${fileName}"`,
     },
   });
-}
+});
