@@ -2,8 +2,9 @@
 import { useState } from 'react';
 import { X, MapPin, Ruler, Layers, FileText, Trash2, Calendar, Loader2 } from 'lucide-react';
 import { deletePhoto } from '../lib/apiService';
+import PhotoInstallations from './PhotoInstallations';
 
-export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted }) {
+export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted, onFilesChanged }) {
   const [deleting, setDeleting] = useState(false);
 
   const first = photos[0];
@@ -112,6 +113,8 @@ export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted
                 </div>
               );
             })}
+
+            <PhotoInstallations photos={photos} projectId={projectId} onFilesChanged={onFilesChanged} />
 
             {date && (
               <div className="pt-4 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-400">

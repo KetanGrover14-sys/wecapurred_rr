@@ -1,4 +1,4 @@
-import { getProjectById, getProjectFiles, insertProjectFile } from '../../../../../lib/sheets';
+import { getProjectById, getProjectFiles, insertProjectFile, getPhotoRowById, saveInstallationMapping } from '../../../../../lib/sheets';
 import { uploadToS3 } from '../../../../../lib/s3';
 import { withAuth } from '../../../../../lib/withAuth';
 import { v4 as uuid } from 'uuid';
@@ -31,8 +31,9 @@ export const POST = withAuth(async (request, { params }) => {
   const formData = await request.formData();
   const file     = formData.get('file');
   const type     = formData.get('type'); // 'racce' | 'installation'
+  const photoId  = formData.get('photo_id');
 
-  if (!file) return Response.json({ error: 'No file provided' }, { status: 400 });
+  if (!file || typeof file.arrayBuffer !== 'function') return Response.json({ error: 'No file provided' }, { status: 400 });
   if (!['racce', 'installation'].includes(type)) {
     return Response.json({ error: 'type must be racce or installation' }, { status: 400 });
   }
@@ -40,6 +41,20 @@ export const POST = withAuth(async (request, { params }) => {
   // Only admin can upload installation files
   if (type === 'installation' && request.user.role !== 'admin') {
     return Response.json({ error: 'Only admin can upload installation files' }, { status: 403 });
+  }
+
+  // Validate the target before uploading anything. A recce entry must belong to this project.
+  if (photoId !== null) {
+    if (type !== 'installation' || typeof photoId !== 'string' || !photoId || photoId.length >= 200) {
+      return Response.json({ error: 'Select a valid recce photo for this installation.' }, { status: 400 });
+    }
+    const photo = await getPhotoRowById(photoId);
+    if (!photo || photo.project_id !== params.id) {
+      return Response.json({ error: 'The recce photo does not belong to this project.' }, { status: 400 });
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || !file.size || file.size > 15 * 1024 * 1024) {
+      return Response.json({ error: 'Choose a JPEG, PNG, WebP, or GIF installation image up to 15 MB.' }, { status: 400 });
+    }
   }
 
   const fileId   = uuid();
@@ -68,5 +83,18 @@ export const POST = withAuth(async (request, { params }) => {
   };
 
   await insertProjectFile(record);
+  if (photoId) {
+    try {
+      const mapping = await saveInstallationMapping({
+        id: uuid(), project_id: params.id, photo_id: photoId, file_id: fileId,
+        created_by: request.user.id, created_at: new Date().toISOString(),
+      });
+      return Response.json({ ...record, mapping }, { status: 201 });
+    } catch (error) {
+      console.error('Installation uploaded but mapping failed', error);
+      // The file is already saved. Return it so the UI can retry linking without re-uploading.
+      return Response.json({ ...record, mapping_error: 'The photo was uploaded, but linking failed. Select this file below and retry Link to recce.' }, { status: 201 });
+    }
+  }
   return Response.json(record, { status: 201 });
 });

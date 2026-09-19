@@ -215,7 +215,7 @@ export default function ProjectPage() {
         <AddPhotoModal projectId={id} onClose={() => setShowAdd(false)} onAdded={handlePhotoAdded} />
       )}
       {selected && (
-        <PhotoDetailModal photos={selected} projectId={id} onClose={() => setSelected(null)} onDeleted={handlePhotoDeleted} />
+        <PhotoDetailModal photos={selected} projectId={id} onClose={() => setSelected(null)} onDeleted={handlePhotoDeleted} onFilesChanged={loadFiles} />
       )}
     </div>
   );
