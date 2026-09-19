@@ -59,6 +59,7 @@ export const POST = withAuth(async (request, { params }) => {
       breadth:            e.breadth  || '',
       height:             e.height   || '',
       material:           e.material || '',
+      collateral:         e.collateral || '',
       notes:              e.notes    || '',
       created_at:         now,
     };

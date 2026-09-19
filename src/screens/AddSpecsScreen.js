@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Image, ActivityIndicator, Alert,
-  KeyboardAvoidingView, Platform, StatusBar,
+  KeyboardAvoidingView, Platform, StatusBar, Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,10 +12,11 @@ import { addPhoto } from '../services/apiService';
 import { colors } from '../utils/colors';
 
 const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB', 'Other'];
+const COLLATERALS = ['Element', 'Banner', 'Brochure', 'Canopy', 'Leaflet', 'Paper Carry Bag', 'Poster', 'Promotional Pen', 'Standee', 'Tent Card', 'Dangler'];
 
 const blankEntry = () => ({
   _id: Date.now() + Math.random(),
-  material: '', length: '', breadth: '', height: '', notes: '',
+  material: '', collateral: '', length: '', breadth: '', height: '', notes: '',
 });
 
 export default function AddSpecsScreen({ route, navigation }) {
@@ -140,6 +141,8 @@ export default function AddSpecsScreen({ route, navigation }) {
               ))}
             </View>
 
+            <CollateralDropdown value={entry.collateral} onChange={(value) => updateEntry(entry._id, 'collateral', value)} />
+
             {/* Dimensions */}
             <View style={[styles.sectionRow, { marginTop: 14 }]}>
               <Ionicons name="resize-outline" size={14} color={colors.primary} />
@@ -221,6 +224,35 @@ export default function AddSpecsScreen({ route, navigation }) {
   );
 }
 
+function CollateralDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <View>
+      <View style={[styles.sectionRow, { marginTop: 14 }]}>
+        <Ionicons name="pricetag-outline" size={14} color={colors.primary} />
+        <Text style={styles.fieldLabel}>COLLATERAL</Text>
+      </View>
+      <TouchableOpacity style={styles.dropdown} onPress={() => setOpen(true)}>
+        <Text style={[styles.dropdownText, !value && styles.dropdownPlaceholder]}>{value || 'Select collateral'}</Text>
+        <Ionicons name="chevron-down" size={18} color={colors.textLight} />
+      </TouchableOpacity>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <TouchableOpacity style={styles.dropdownBackdrop} activeOpacity={1} onPress={() => setOpen(false)}>
+          <View style={styles.dropdownMenu}>
+            <Text style={styles.dropdownTitle}>Select collateral</Text>
+            {COLLATERALS.map((collateral) => (
+              <TouchableOpacity key={collateral} style={styles.dropdownOption} onPress={() => { onChange(collateral); setOpen(false); }}>
+                <Text style={[styles.dropdownOptionText, value === collateral && styles.dropdownOptionActive]}>{collateral}</Text>
+                {value === collateral && <Ionicons name="checkmark" size={18} color={colors.primary} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   header: { paddingTop: 50, paddingBottom: 16, paddingHorizontal: 16 },
@@ -265,6 +297,19 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.primaryBg, borderColor: colors.primary },
   chipText: { fontSize: 13, color: colors.textMedium, fontWeight: '500' },
   chipTextActive: { color: colors.primary, fontWeight: '700' },
+  dropdown: {
+    minHeight: 46, borderWidth: 1, borderColor: colors.border, borderRadius: 10,
+    backgroundColor: colors.background, paddingHorizontal: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  dropdownText: { fontSize: 14, color: colors.text, flex: 1 },
+  dropdownPlaceholder: { color: colors.textLight },
+  dropdownBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 24 },
+  dropdownMenu: { backgroundColor: colors.cardBg, borderRadius: 16, padding: 16, maxHeight: '80%' },
+  dropdownTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 8 },
+  dropdownOption: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: colors.divider },
+  dropdownOptionText: { fontSize: 14, color: colors.textMedium },
+  dropdownOptionActive: { color: colors.primary, fontWeight: '700' },
   dimRow: { flexDirection: 'row', gap: 10 },
   dimItem: { flex: 1 },
   dimLabel: { fontSize: 11, color: colors.textMedium, fontWeight: '600', marginBottom: 6, textAlign: 'center' },

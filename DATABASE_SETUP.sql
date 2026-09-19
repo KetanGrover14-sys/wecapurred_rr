@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS photos (
   breadth     VARCHAR(50),
   height      VARCHAR(50),
   material    VARCHAR(100),
+  collateral  VARCHAR(100),
   notes       TEXT,
   created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE

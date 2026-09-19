@@ -85,7 +85,7 @@ export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted
                 photo.breadth && `B: ${photo.breadth}`,
                 photo.height  && `H: ${photo.height}`,
               ].filter(Boolean).join('   ');
-              const hasEntry = dims || photo.material || photo.notes;
+              const hasEntry = dims || photo.material || photo.collateral || photo.notes;
               if (!hasEntry) return null;
               return (
                 <div key={photo.id}>
@@ -98,6 +98,15 @@ export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted
                         value={
                           <span className="inline-block bg-primary-50 text-primary-600 border border-primary-200 rounded-full px-3 py-0.5 text-xs font-bold">
                             {photo.material}
+                          </span>
+                        }
+                      />
+                    )}
+                    {photo.collateral && (
+                      <SpecRow icon={<Layers size={14} className="text-primary-500" />} label="Collateral"
+                        value={
+                          <span className="inline-block bg-primary-50 text-primary-600 border border-primary-200 rounded-full px-3 py-0.5 text-xs font-bold">
+                            {photo.collateral}
                           </span>
                         }
                       />

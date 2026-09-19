@@ -21,7 +21,7 @@ export const getProject = (id) =>
 export const getPhotos = (projectId) =>
   fetch(url(`/api/projects/${projectId}/photos`)).then((r) => r.json());
 
-// entries: [{ material, length, breadth, height, notes }]
+// entries: [{ material, collateral, length, breadth, height, notes }]
 // Image uploaded once; one DB row created per entry.
 export const addPhoto = (projectId, location, entries, imageUri, onProgress) =>
   new Promise((resolve, reject) => {

@@ -15,11 +15,11 @@ const PhotoCard = ({ group, onPress }) => {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
       <Image source={{ uri: first.image_url }} style={styles.image} resizeMode="cover" />
       <View style={styles.overlay}>
-        {(!!first.material || multiEntry) && (
+        {(!!first.material || !!first.collateral || multiEntry) && (
           <View style={styles.materialBadge}>
             <Text style={styles.materialText} numberOfLines={1}>
-              {first.material || ''}
-              {multiEntry ? `${first.material ? ' ' : ''}+${group.length - 1}` : ''}
+              {first.collateral || first.material || ''}
+              {multiEntry ? `${first.collateral || first.material ? ' ' : ''}+${group.length - 1}` : ''}
             </Text>
           </View>
         )}

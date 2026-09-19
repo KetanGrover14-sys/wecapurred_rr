@@ -117,6 +117,7 @@ export const generatePPT = async (project, photos) => {
         photo.height  ? `H: ${photo.height}`  : null,
       ].filter(Boolean).join('   ');
       addSpec('MATERIAL / TYPE', photo.material);
+      addSpec('COLLATERAL', photo.collateral);
       addSpec('DIMENSIONS', dims);
       addSpec('NOTES', photo.notes);
     });

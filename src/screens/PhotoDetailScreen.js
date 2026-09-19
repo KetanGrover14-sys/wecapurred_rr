@@ -100,7 +100,7 @@ export default function PhotoDetailScreen({ route, navigation }) {
             photo.breadth ? `B: ${photo.breadth}` : null,
             photo.height  ? `H: ${photo.height}`  : null,
           ].filter(Boolean).join('   ');
-          const hasEntry = dims || photo.material || photo.notes;
+          const hasEntry = dims || photo.material || photo.collateral || photo.notes;
           if (!hasEntry) return null;
 
           return (
@@ -118,6 +118,9 @@ export default function PhotoDetailScreen({ route, navigation }) {
 
               {!!photo.material && (
                 <SpecRow icon="layers" label="Material / Type" value={photo.material} valueBadge />
+              )}
+              {!!photo.collateral && (
+                <SpecRow icon="pricetag" label="Collateral" value={photo.collateral} valueBadge />
               )}
               {!!dims && (
                 <SpecRow icon="resize" label="Dimensions (L × B × H)" value={dims} />

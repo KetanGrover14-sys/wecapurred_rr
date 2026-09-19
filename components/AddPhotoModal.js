@@ -4,8 +4,9 @@ import { X, Upload, Loader2, ImagePlus, Camera, FolderOpen, RotateCcw, MapPin, L
 import { addPhoto } from '../lib/apiService';
 
 const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
+const COLLATERALS = ['Element', 'Banner', 'Brochure', 'Canopy', 'Leaflet', 'Paper Carry Bag', 'Poster', 'Promotional Pen', 'Standee', 'Tent Card', 'Dangler'];
 
-const blankEntry = () => ({ _id: Date.now() + Math.random(), material: '', length: '', breadth: '', height: '', notes: '' });
+const blankEntry = () => ({ _id: Date.now() + Math.random(), material: '', collateral: '', length: '', breadth: '', height: '', notes: '' });
 
 const PEN_COLORS = [
   { label: 'Red',    hex: '#CC0000' },
@@ -657,6 +658,15 @@ function EntryBlock({ entry, index, total, onChange, onRemove }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Collateral */}
+        <div>
+          <p className="text-xs font-bold text-gray-600 mb-2">Collateral</p>
+          <select value={entry.collateral} onChange={(e) => onChange('collateral')(e.target.value)} className="input-field">
+            <option value="">Select collateral</option>
+            {COLLATERALS.map((collateral) => <option key={collateral} value={collateral}>{collateral}</option>)}
+          </select>
         </div>
 
         {/* Dimensions */}
