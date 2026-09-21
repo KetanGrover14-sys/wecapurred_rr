@@ -16,7 +16,7 @@ export default function ProjectFilesSection({ projectId, user, files, onFilesCha
   return (
     <div className="space-y-4">
       <FileGroup
-        title="RACCE File"
+        title="RECCE File"
         icon={<FileText size={16} className="text-blue-500" />}
         accentColor="blue"
         files={racceFiles}
