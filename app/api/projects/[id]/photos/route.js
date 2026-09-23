@@ -27,6 +27,11 @@ export const POST = withAuth(async (request, { params }) => {
   const formData = await request.formData();
   const file     = formData.get('file');
   if (!file) return Response.json({ error: 'No file provided' }, { status: 400 });
+  const storeId = formData.get('store_id') || '';
+  const brandName = formData.get('brand_name') || '';
+  if ([storeId, brandName].some(value => typeof value !== 'string' || value.length > 200)) {
+    return Response.json({ error: 'Store ID and brand name must be text of up to 200 characters.' }, { status: 400 });
+  }
 
   const buffer   = Buffer.from(await file.arrayBuffer());
   const imageId  = uuid();
@@ -53,6 +58,9 @@ export const POST = withAuth(async (request, { params }) => {
       s3_key:             i === 0 ? key : '',
       location,
       store_name:         storeName,
+      store_id:           storeId.trim(),
+      brand_name:         brandName.trim(),
+      payment_status:     '',
       store_owner_name:   storeOwnerName,
       store_owner_mobile: storeOwnerMobile,
       length:             e.length   || '',

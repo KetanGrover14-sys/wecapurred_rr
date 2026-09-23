@@ -1,6 +1,7 @@
 import { withAuth } from '../../../lib/withAuth';
 import { getRepositoryData, getProjectById, getPhotoRowById, getProjectFileById, saveInstallationMapping, removeInstallationMapping } from '../../../lib/sheets';
 import { v4 as uuid } from 'uuid';
+import { removalExpired } from '../../../lib/lifecycle';
 
 export const GET = withAuth(async request => {
   try {
@@ -34,6 +35,7 @@ async function mutate(request) {
       await removeInstallationMapping(project_id, photo_id, file_id);
       return Response.json({ success: true });
     }
+    if (removalExpired(file)) return Response.json({ error: 'This installation has passed its removal date and cannot be linked again.' }, { status: 400 });
     const mapping = await saveInstallationMapping({ id: uuid(), project_id, photo_id, file_id, created_by: request.user.id, created_at: new Date().toISOString() });
     return Response.json(mapping, { status: 201 });
   } catch (error) {

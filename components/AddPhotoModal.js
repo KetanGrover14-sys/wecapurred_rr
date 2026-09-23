@@ -28,6 +28,8 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   const [preview, setPreview]             = useState(null);
   const [location, setLocation]           = useState('');
   const [storeName, setStoreName]         = useState('');
+  const [storeId, setStoreId] = useState('');
+  const [brandName, setBrandName] = useState('');
   const [storeOwnerName, setStoreOwnerName]     = useState('');
   const [storeOwnerMobile, setStoreOwnerMobile] = useState('');
   const [entries, setEntries]             = useState([blankEntry()]);
@@ -281,7 +283,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
     if (!location.trim())   return setError('Location is required.');
     setError(''); setUploading(true);
     try {
-      await addPhoto(projectId, location, storeName, storeOwnerName, storeOwnerMobile, entries, file, setProgress);
+      await addPhoto(projectId, location, storeName, storeOwnerName, storeOwnerMobile, entries, file, setProgress, { store_id: storeId, brand_name: brandName });
       onAdded();
     } catch { setError('Upload failed. Check your AWS S3 credentials.'); }
     finally  { setUploading(false); }
@@ -541,6 +543,8 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
               </div>
               <div className="p-4 space-y-3">
                 <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-3">Store ID<input value={storeId} onChange={event => setStoreId(event.target.value)} maxLength={200} placeholder="Store code / ID" className="input-field mt-1" /></label>
+                  <label className="block text-xs font-bold text-gray-600 mb-3">Brand name<input value={brandName} onChange={event => setBrandName(event.target.value)} maxLength={200} placeholder="e.g. Apollo Pharmacy" className="input-field mt-1" /></label>
                   <p className="text-xs font-bold text-gray-600 mb-1.5">Store Name</p>
                   <input value={storeName} onChange={(e) => setStoreName(e.target.value)}
                     placeholder="e.g. Sharma Electronics" className="input-field" />

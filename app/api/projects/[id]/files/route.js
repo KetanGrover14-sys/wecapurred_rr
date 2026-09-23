@@ -32,6 +32,11 @@ export const POST = withAuth(async (request, { params }) => {
   const file     = formData.get('file');
   const type     = formData.get('type'); // 'racce' | 'installation'
   const photoId  = formData.get('photo_id');
+  const removalDate = formData.get('removal_date') || '';
+  const expiryDays = formData.get('project_expiry_days') || '';
+  if (expiryDays !== '' && (type !== 'installation' || typeof expiryDays !== 'string' || !/^[1-9]\d*$/.test(expiryDays) || Number(expiryDays) > 36500)) {
+    return Response.json({ error: 'Project expiry must be a whole number from 1 to 36500 days.' }, { status: 400 });
+  }
 
   if (!file || typeof file.arrayBuffer !== 'function') return Response.json({ error: 'No file provided' }, { status: 400 });
   if (!['racce', 'installation'].includes(type)) {
@@ -41,6 +46,16 @@ export const POST = withAuth(async (request, { params }) => {
   // Only admin can upload installation files
   if (type === 'installation' && request.user.role !== 'admin') {
     return Response.json({ error: 'Only admin can upload installation files' }, { status: 403 });
+  }
+
+  // Date-only value: never convert it to a timezone-dependent timestamp.
+  // Missing values remain supported for older clients and historical records.
+  if (removalDate) {
+    const date = typeof removalDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(removalDate)
+      ? new Date(`${removalDate}T00:00:00Z`) : new Date(NaN);
+    if (type !== 'installation' || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== removalDate) {
+      return Response.json({ error: 'Select a valid removal date (YYYY-MM-DD).' }, { status: 400 });
+    }
   }
 
   // Validate the target before uploading anything. A recce entry must belong to this project.
@@ -80,6 +95,8 @@ export const POST = withAuth(async (request, { params }) => {
     reviewed_by_name: '',
     reviewed_at:      '',
     created_at:       new Date().toISOString(),
+    removal_date:     type === 'installation' ? removalDate : '',
+    project_expiry_days: type === 'installation' ? expiryDays : '',
   };
 
   await insertProjectFile(record);

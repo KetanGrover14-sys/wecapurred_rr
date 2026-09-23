@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { X, MapPin, Ruler, Layers, FileText, Trash2, Calendar, Loader2 } from 'lucide-react';
 import { deletePhoto } from '../lib/apiService';
 import PhotoInstallations from './PhotoInstallations';
+import { formatTimestamp } from '../lib/dates';
 
 export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted, onFilesChanged }) {
   const [deleting, setDeleting] = useState(false);
 
   const first = photos[0];
   const date  = first?.created_at
-    ? new Date(first.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    ? formatTimestamp(first.created_at)
     : '';
 
   const handleDelete = async () => {

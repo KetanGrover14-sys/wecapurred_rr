@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react';
 import { Upload, Download, Trash2, CheckCircle, XCircle, Clock, FileText, Wrench, Loader2 } from 'lucide-react';
 import { uploadProjectFile, deleteProjectFile, reviewInstallationFile } from '../lib/apiService';
+import { formatTimestamp, formatRemovalDate } from '../lib/dates';
 
 const STATUS_CONFIG = {
   pending:  { label: 'Pending Review', color: 'bg-amber-50 text-amber-700 border-amber-200',  Icon: Clock         },
@@ -45,6 +46,8 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
   const [uploading, setUploading]   = useState(false);
   const [progress, setProgress]     = useState(0);
   const [uploadError, setUploadError] = useState('');
+  const [removalDate, setRemovalDate] = useState('');
+  const [expiryDays, setExpiryDays] = useState('');
   const inputRef = useRef(null);
 
   const colorMap = {
@@ -56,11 +59,18 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (type === 'installation' && !removalDate) {
+      setUploadError('Choose the planned removal date first.');
+      if (inputRef.current) inputRef.current.value = '';
+      return;
+    }
+    if (type === 'installation' && (!/^[1-9]\d*$/.test(expiryDays) || Number(expiryDays) > 36500)) { setUploadError('Enter project expiry as a whole number from 1 to 36500 days.'); return; }
     setUploading(true);
     setUploadError('');
     setProgress(0);
     try {
-      await uploadProjectFile(projectId, type, file, setProgress);
+      await uploadProjectFile(projectId, type, file, setProgress, undefined, removalDate, expiryDays);
+      setRemovalDate(''); setExpiryDays('');
       onFilesChanged();
     } catch (err) {
       setUploadError(err.message || 'Upload failed');
@@ -86,7 +96,7 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
             <input ref={inputRef} type="file" className="hidden" onChange={handleUpload} />
             <button
               onClick={() => inputRef.current?.click()}
-              disabled={uploading}
+              disabled={uploading || (type === 'installation' && !removalDate)}
               className="flex items-center gap-1.5 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors disabled:opacity-60"
               style={{ backgroundColor: c.btnBg }}>
               {uploading
@@ -97,6 +107,11 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
         )}
       </div>
 
+      {canUpload && type === 'installation' && <div className="px-4 pt-3"><label className="block text-xs font-semibold mb-3">Project expiry in days<input type="number" min="1" max="36500" step="1" value={expiryDays} disabled={uploading} onChange={event => setExpiryDays(event.target.value)} placeholder="e.g. 30" className="mt-1 block w-full border rounded-xl p-2 text-sm" /><span className="block mt-1 font-normal">Planned duration. Removal date controls automatic unlinking.</span></label></div>}
+      {canUpload && type === 'installation' && <label className="block px-4 py-3 text-xs font-semibold" style={{ color: '#1B3A2A' }}>Removal date (planned)
+        <input type="date" value={removalDate} disabled={uploading} onChange={event => setRemovalDate(event.target.value)} className="block mt-1 border rounded-xl p-2 text-sm" />
+        <span className="block mt-2 font-normal">Choose the removal date, then upload. Installation date and time are recorded automatically.</span>
+      </label>}
       {uploadError && (
         <div className="px-4 py-2 text-xs font-medium" style={{ backgroundColor: '#fff0f0', color: '#c0392b', borderBottom: '1px solid #fcc' }}>
           {uploadError}
@@ -134,9 +149,7 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
 
   const dlStyle = { backgroundColor: '#EDE0C0', color: '#1B4332' };
 
-  const fmtDate = (ts) => ts
-    ? new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })
-    : '';
+  const fmtDate = formatTimestamp;
 
   const canDelete = user?.role === 'admin' || file.uploaded_by === user?.id;
   const canReview = file.type === 'installation' && file.status === 'pending' && user?.role !== 'admin';
@@ -172,6 +185,7 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
           By {file.uploaded_by_name} · {fmtDate(file.created_at)}
         </p>
 
+        {file.type === 'installation' && <p className="text-xs mt-1" style={{ color: '#5A7A65' }}>Removal date: {formatRemovalDate(file.removal_date)}{file.project_expiry_days && ` ? Project expiry: ${file.project_expiry_days} days`}</p>}
         {/* Status badge for installation files */}
         {statusCfg && (
           <div className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border text-xs font-semibold ${statusCfg.color}`}>

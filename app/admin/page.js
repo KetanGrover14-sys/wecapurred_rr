@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../components/AuthProvider';
 import Navbar from '../../components/Navbar';
+import AdminPhotoEntries from '../../components/AdminPhotoEntries';
 import { getVendors, createVendor, deleteVendor } from '../../lib/apiService';
 import { ShieldCheck, Plus, Trash2, User, RefreshCw, X, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -71,7 +72,7 @@ export default function AdminPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-light text-white">Admin Panel</h1>
-                <p className="text-sm font-light" style={{ color: '#95D5B2' }}>Manage vendor accounts</p>
+                <p className="text-sm font-light" style={{ color: '#95D5B2' }}>Track photo entries, installations, payments and vendor accounts</p>
               </div>
             </div>
             <button onClick={load} className="p-2.5 rounded-xl transition-colors"
@@ -82,6 +83,7 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {user?.role === 'admin' && <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-6"><AdminPhotoEntries /></div>}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-24">
         {!showForm ? (
           <button onClick={() => setShowForm(true)}
