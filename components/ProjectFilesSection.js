@@ -185,7 +185,7 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
           By {file.uploaded_by_name} · {fmtDate(file.created_at)}
         </p>
 
-        {file.type === 'installation' && <p className="text-xs mt-1" style={{ color: '#5A7A65' }}>Removal date: {formatRemovalDate(file.removal_date)}{file.project_expiry_days && ` ? Project expiry: ${file.project_expiry_days} days`}</p>}
+        {file.type === 'installation' && <p className="text-xs mt-1" style={{ color: '#5A7A65' }}>Removal date: {formatRemovalDate(file.removal_date)}{file.project_expiry_days && ` | Project expiry: ${file.project_expiry_days} days`}</p>}
         {/* Status badge for installation files */}
         {statusCfg && (
           <div className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border text-xs font-semibold ${statusCfg.color}`}>

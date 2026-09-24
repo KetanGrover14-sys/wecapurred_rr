@@ -4,7 +4,7 @@ import { X, Upload, Loader2, ImagePlus, Camera, FolderOpen, RotateCcw, MapPin, L
 import { addPhoto } from '../lib/apiService';
 
 const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
-const COLLATERALS = ['Element', 'Banner', 'Brochure', 'Canopy', 'Leaflet', 'Paper Carry Bag', 'Poster', 'Promotional Pen', 'Standee', 'Tent Card', 'Dangler'];
+const COLLATERALS = ['Glass Facade', 'Television'];
 
 const blankEntry = () => ({ _id: Date.now() + Math.random(), material: '', collateral: '', length: '', breadth: '', height: '', notes: '' });
 

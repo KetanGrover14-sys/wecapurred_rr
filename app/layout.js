@@ -2,8 +2,9 @@ import './globals.css';
 import AuthProvider from '../components/AuthProvider';
 
 export const metadata = {
-  title: 'Norrvex Partner',
-  description: 'Banner & Hoarding Management',
+  title: 'Apollo Pharmacy \u00d7 Norrvex Labs',
+  description: 'Apollo Pharmacy recce, installation and project management in collaboration with Norrvex Labs',
+  icons: { icon: '/images/apollopharmacy.png' },
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover',
 };
 

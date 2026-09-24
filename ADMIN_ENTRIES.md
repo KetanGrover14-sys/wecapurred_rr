@@ -15,3 +15,5 @@ Expiry days are calculated per entry from its next active removal date, or its m
 Deploy `wecapurred_rr` first, then `norrvex_bucket`, to enable filtering in the shared repository API and refresh behavior in Bucket. Both apps retain their existing environment configuration.
 
 Tests in `norrvex_bucket` cover the IST expiry boundary, retained files/history, repository ownership filtering, and admin endpoint permissions and validation. Run `npm test`, builds in both apps, and `npm run test:production` in Bucket. These checks use fixtures and do not modify production data.
+
+Installation uploads also record `project_expiry_days` (a whole number from 1 to 36500). This planned duration is shown separately from the days-until-removal countdown; the explicit removal date controls unlinking. Older clients may omit the duration.

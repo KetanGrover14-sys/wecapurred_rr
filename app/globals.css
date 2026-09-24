@@ -19,3 +19,22 @@ body {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #F5EDD6; }
 ::-webkit-scrollbar-thumb { background: #B8A06A; border-radius: 99px; }
+
+
+/* Apollo Pharmacy leads the partnership on login and navigation. */
+.partner-brand { display: flex; align-items: center; justify-content: center; gap: 24px; }
+.partner-apollo { width: 190px; height: auto; object-fit: contain; }
+.partner-secondary { display: flex; align-items: center; gap: 18px; color: #6a858b; font-size: 22px; }
+.partner-norrvex { width: 75px; height: auto; object-fit: contain; }
+.partner-brand-compact { gap: 12px; }
+.partner-brand-compact .partner-apollo { width: 85px; }
+.partner-brand-compact .partner-norrvex { width: 40px; }
+.partner-brand-compact .partner-secondary { gap: 10px; font-size: 16px; }
+@media (max-width: 380px) {
+  .partner-brand { gap: 16px; }
+  .partner-apollo { width: 160px; }
+  .partner-brand-compact { gap: 6px; }
+  .partner-brand-compact .partner-apollo { width: 65px; }
+  .partner-brand-compact .partner-secondary { gap: 6px; }
+  .partner-brand-compact .partner-norrvex { width: 32px; }
+}

@@ -115,7 +115,7 @@ export default function PhotoInstallations({ photos, projectId, onFilesChanged }
         {image && url && <a href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt={file.file_name} className="w-full h-40 object-contain bg-gray-50" /></a>}
         <div className="p-3"><p className="text-sm font-medium break-words">{file.file_name}</p><p className="text-xs text-gray-500 mt-1">Entry {photos.findIndex(photo => photo.id === mapping.photo_id) + 1} · {file.status || 'pending'}</p>
           <p className="text-xs text-gray-500 mt-1">Installation added: {formatTimestamp(file.created_at)}</p>
-          <p className="text-xs text-gray-500 mt-1">Removal date: {formatRemovalDate(file.removal_date)}{file.project_expiry_days && ` ? Project expiry: ${file.project_expiry_days} days`}</p>
+          <p className="text-xs text-gray-500 mt-1">Removal date: {formatRemovalDate(file.removal_date)}{file.project_expiry_days && ` | Project expiry: ${file.project_expiry_days} days`}</p>
           {url && <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-700 inline-block mt-2">Open installation file</a>}
         </div>
       </div>;
