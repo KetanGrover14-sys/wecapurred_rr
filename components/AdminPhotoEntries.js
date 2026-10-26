@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Download } from 'lucide-react';
 import { formatTimestamp, formatRemovalDate } from '../lib/dates';
 
 const labels = { recce: 'Recce', installed: 'Installed', removed: 'Removed' };
@@ -21,10 +22,12 @@ async function entriesRequest(method = 'GET', values) {
 
 function safeURL(value) { try { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch { return ''; } }
 
-export default function AdminPhotoEntries() {
+export default function AdminPhotoEntries({ vendors, vendorsLoading }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [payment, setPayment] = useState('all');
@@ -62,13 +65,136 @@ export default function AdminPhotoEntries() {
     finally { setSaving(false); }
   }
 
+  async function exportWorkbook() {
+    setExporting(true);
+    setExportError('');
+    try {
+      const { default: ExcelJS } = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Wecapurred Admin';
+      workbook.created = new Date();
+
+      const addSheet = (name, columns, rows) => {
+        const sheet = workbook.addWorksheet(name);
+        sheet.columns = columns;
+        sheet.addRows(rows);
+        sheet.views = [{ state: 'frozen', ySplit: 1 }];
+        sheet.autoFilter = {
+          from: 'A1',
+          to: sheet.getCell(Math.max(sheet.rowCount, 1), columns.length).address,
+        };
+        sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B4332' } };
+        return sheet;
+      };
+
+      addSheet('Photo Entries', [
+        { header: 'Entry ID', key: 'id', width: 38 },
+        { header: 'Project ID', key: 'project_id', width: 38 },
+        { header: 'Project', key: 'project_name', width: 24 },
+        { header: 'Recce image URL', key: 'image_url', width: 48 },
+        { header: 'Recce added', key: 'created_at', width: 24 },
+        { header: 'Store ID', key: 'store_id', width: 18 },
+        { header: 'Store name', key: 'store_name', width: 24 },
+        { header: 'Store owner name', key: 'store_owner_name', width: 24 },
+        { header: 'Store owner mobile', key: 'store_owner_mobile', width: 20 },
+        { header: 'Location', key: 'location', width: 32 },
+        { header: 'Length', key: 'length', width: 12 },
+        { header: 'Breadth', key: 'breadth', width: 12 },
+        { header: 'Height', key: 'height', width: 12 },
+        { header: 'Material', key: 'material', width: 20 },
+        { header: 'Collateral type', key: 'collateral', width: 24 },
+        { header: 'Notes', key: 'notes', width: 40 },
+        { header: 'Brand name', key: 'brand_name', width: 24 },
+        { header: 'Payment', key: 'payment_status', width: 16 },
+        { header: 'Status', key: 'status', width: 16 },
+        { header: 'Removal date', key: 'removal_date', width: 18 },
+        { header: 'Days until removal', key: 'expiry_days', width: 20 },
+      ], entries.map(entry => ({
+        ...entry,
+        payment_status: entry.payment_status === 'yes' ? 'Yes' : entry.payment_status === 'no' ? 'No' : 'Not recorded',
+        status: labels[entry.status] || entry.status,
+      })));
+
+      const installations = entries.flatMap(entry => entry.installations.map(({ mapping, file, expired }) => ({
+        photo_entry_id: entry.id,
+        project_id: entry.project_id,
+        project_name: entry.project_name,
+        store_id: entry.store_id,
+        store_name: entry.store_name,
+        mapping_id: mapping.id,
+        mapping_created_by: mapping.created_by,
+        mapping_created_at: mapping.created_at,
+        file_id: file.id,
+        file_name: file.file_name,
+        file_url: file.file_url,
+        uploaded_by: file.uploaded_by,
+        uploaded_by_name: file.uploaded_by_name,
+        uploaded_at: file.created_at,
+        file_status: file.status,
+        reviewed_by: file.reviewed_by,
+        reviewed_by_name: file.reviewed_by_name,
+        reviewed_at: file.reviewed_at,
+        project_expiry_days: file.project_expiry_days,
+        removal_date: file.removal_date,
+        expired: expired ? 'Yes' : 'No',
+      })));
+      addSheet('Installations', [
+        { header: 'Photo entry ID', key: 'photo_entry_id', width: 38 },
+        { header: 'Project ID', key: 'project_id', width: 38 },
+        { header: 'Project', key: 'project_name', width: 24 },
+        { header: 'Store ID', key: 'store_id', width: 18 },
+        { header: 'Store name', key: 'store_name', width: 24 },
+        { header: 'Mapping ID', key: 'mapping_id', width: 38 },
+        { header: 'Mapping created by', key: 'mapping_created_by', width: 38 },
+        { header: 'Mapping created at', key: 'mapping_created_at', width: 24 },
+        { header: 'File ID', key: 'file_id', width: 38 },
+        { header: 'File name', key: 'file_name', width: 32 },
+        { header: 'File URL', key: 'file_url', width: 48 },
+        { header: 'Uploaded by ID', key: 'uploaded_by', width: 38 },
+        { header: 'Uploaded by name', key: 'uploaded_by_name', width: 24 },
+        { header: 'Uploaded at', key: 'uploaded_at', width: 24 },
+        { header: 'File status', key: 'file_status', width: 16 },
+        { header: 'Reviewed by ID', key: 'reviewed_by', width: 38 },
+        { header: 'Reviewed by name', key: 'reviewed_by_name', width: 24 },
+        { header: 'Reviewed at', key: 'reviewed_at', width: 24 },
+        { header: 'Project expiry (days)', key: 'project_expiry_days', width: 22 },
+        { header: 'Removal date', key: 'removal_date', width: 18 },
+        { header: 'Expired', key: 'expired', width: 12 },
+      ], installations);
+
+      addSheet('Vendors', [
+        { header: 'Vendor ID', key: 'id', width: 38 },
+        { header: 'Name', key: 'name', width: 28 },
+        { header: 'Email', key: 'email', width: 36 },
+        { header: 'Role', key: 'role', width: 16 },
+      ], vendors.map(({ id, name, email, role }) => ({ id, name, email, role })));
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `admin-export-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error('Admin workbook export failed', error);
+      setExportError('Unable to export admin data. Please retry.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const projects = [...new Map(entries.map(entry => [entry.project_id, entry.project_name])).entries()];
   const query = search.trim().toLowerCase();
   const visible = entries.filter(entry => (status === 'all' || entry.status === status) && (payment === 'all' || (entry.payment_status || 'unknown') === payment) &&
     (project === 'all' || entry.project_id === project) && [entry.store_id, entry.store_name, entry.collateral, entry.brand_name, entry.project_name].join(' ').toLowerCase().includes(query));
 
   return <section className="rounded-2xl border border-gray-200 bg-white overflow-hidden mb-8">
-    <div className="p-5 border-b border-gray-100 flex flex-wrap justify-between gap-3"><div><h2 className="text-xl font-semibold text-gray-900">All photo entries</h2><p className="text-sm text-gray-500 mt-1">Store, collateral, payment and installation tracking. One row per recce entry.</p><p className="text-xs text-gray-500 mt-1">Links expire after the removal date ends (IST). Original files remain in Project Files. Refreshes every minute.</p></div><button onClick={load} disabled={loading} className="border rounded-xl px-4 py-2 text-sm disabled:opacity-50">{loading ? 'Refreshing...' : 'Refresh entries'}</button></div>
+    <div className="p-5 border-b border-gray-100 flex flex-wrap justify-between gap-3"><div><h2 className="text-xl font-semibold text-gray-900">All photo entries</h2><p className="text-sm text-gray-500 mt-1">Store, collateral, payment and installation tracking. One row per recce entry.</p><p className="text-xs text-gray-500 mt-1">Links expire after the removal date ends (IST). Original files remain in Project Files. Refreshes every minute.</p></div><div className="flex flex-wrap gap-2"><button onClick={exportWorkbook} disabled={loading || vendorsLoading || exporting || Boolean(error)} className="border border-green-800 text-green-900 rounded-xl px-4 py-2 text-sm flex items-center gap-2 disabled:opacity-50"><Download size={16} />{exporting ? 'Exporting...' : 'Export Excel'}</button><button onClick={load} disabled={loading} className="border rounded-xl px-4 py-2 text-sm disabled:opacity-50">{loading ? 'Refreshing...' : 'Refresh entries'}</button></div></div>
     <div className="px-5 pt-4 flex flex-wrap gap-3 text-sm"><span className="rounded-lg bg-gray-50 px-3 py-2">Total: {entries.length}</span>{Object.entries(labels).map(([key, label]) => <span key={key} className={`rounded-lg px-3 py-2 ${colors[key]}`}>{label}: {entries.filter(entry => entry.status === key).length}</span>)}</div>
     <div className="p-5 flex flex-wrap gap-3">
       <input className={`${fieldStyle} flex-1 min-w-[200px]`} aria-label="Search photo entries" placeholder="Search store ID, store, brand, collateral..." value={search} onChange={event => setSearch(event.target.value)} />
@@ -77,6 +203,7 @@ export default function AdminPhotoEntries() {
       <select className="border rounded-lg p-2 text-sm" aria-label="Filter payment" value={payment} onChange={event => setPayment(event.target.value)}><option value="all">All payments</option><option value="yes">Paid: Yes</option><option value="no">Paid: No</option><option value="unknown">Not recorded</option></select>
     </div>
     {error && <p role="alert" className="px-5 pb-4 text-red-700">{error}</p>}
+    {exportError && <p role="alert" className="px-5 pb-4 text-red-700">{exportError}</p>}
     <div className="overflow-x-auto"><table className="w-full text-left text-sm" style={{ minWidth: 1450 }}>
       <thead className="bg-gray-50 text-xs uppercase text-gray-600"><tr>{['Recce photo', 'Project', 'Store ID', 'Store name', 'Collateral type', 'Brand name', 'Recce added', 'Installation date / time', 'Project expiry (days)', 'Days until removal', 'Removal date', 'Payment', 'Status', 'Actions'].map(title => <th key={title} className="p-3 whitespace-nowrap">{title}</th>)}</tr></thead>
       <tbody>{visible.map(entry => <tr key={entry.id} className="border-t border-gray-100 align-top">

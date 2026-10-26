@@ -2,6 +2,8 @@
 
 The `/admin` page lists one row per recce photo/specification entry across projects. It includes store ID and name, collateral, brand, recce upload time, installation upload time, expiry days, removal dates, payment, and lifecycle status. Administrators can edit store details, collateral, brand, and payment. Existing entries with no payment value display **Not recorded**.
 
+Administrators can export the complete admin dataset to an Excel workbook from this page. The workbook includes photo-entry details, linked installation history (including expired links), and vendor accounts, independent of the active table filters.
+
 New web recce uploads accept store ID and brand. The photos sheet automatically appends `store_id`, `brand_name`, and `payment_status` columns without changing existing column positions. No manual spreadsheet migration is required.
 
 ## Removal and history

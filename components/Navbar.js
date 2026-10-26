@@ -21,11 +21,6 @@ export default function Navbar() {
 
           {user && (
             <div className="flex items-center gap-2">
-              <button onClick={() => router.push('/repository')}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold"
-                style={{ backgroundColor: '#fff4ce', color: '#005f73' }}>
-                Repository
-              </button>
               {user.role === 'admin' && (
                 <button
                   onClick={() => router.push('/admin')}

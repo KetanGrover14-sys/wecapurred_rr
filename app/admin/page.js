@@ -83,7 +83,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {user?.role === 'admin' && <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-6"><AdminPhotoEntries /></div>}
+      {user?.role === 'admin' && <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-6"><AdminPhotoEntries vendors={vendors} vendorsLoading={loading} /></div>}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-24">
         {!showForm ? (
           <button onClick={() => setShowForm(true)}
