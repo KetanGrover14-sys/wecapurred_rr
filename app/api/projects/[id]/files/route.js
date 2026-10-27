@@ -84,8 +84,8 @@ export const POST = withAuth(async (request, { params }) => {
     s3_key:           key,
     uploaded_by:      request.user.id,
     uploaded_by_name: request.user.name,
-    // installation files start as 'pending'; racce files don't need approval
-    status:           type === 'installation' ? 'pending' : '',
+    // installation uploads are approved on upload; no review step
+    status:           type === 'installation' ? 'approved' : '',
     reviewed_by:      '',
     reviewed_by_name: '',
     reviewed_at:      '',

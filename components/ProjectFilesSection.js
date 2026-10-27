@@ -1,14 +1,9 @@
 'use client';
 import { useState, useRef } from 'react';
-import { Upload, Download, Trash2, CheckCircle, XCircle, Clock, FileText, Wrench, Loader2 } from 'lucide-react';
-import { uploadProjectFile, deleteProjectFile, reviewInstallationFile } from '../lib/apiService';
+import { Upload, Download, Trash2, FileText, Wrench, Loader2 } from 'lucide-react';
+import { uploadProjectFile, deleteProjectFile } from '../lib/apiService';
 import { formatTimestamp, formatRemovalDate } from '../lib/dates';
 
-const STATUS_CONFIG = {
-  pending:  { label: 'Pending Review', color: 'bg-amber-50 text-amber-700 border-amber-200',  Icon: Clock         },
-  approved: { label: 'Approved',        color: 'bg-green-50 text-green-700 border-green-200',   Icon: CheckCircle   },
-  declined: { label: 'Declined',        color: 'bg-red-50 text-red-700 border-red-200',         Icon: XCircle       },
-};
 
 export default function ProjectFilesSection({ projectId, user, files, onFilesChanged }) {
   const racceFiles       = files.filter((f) => f.type === 'racce');
@@ -35,7 +30,7 @@ export default function ProjectFilesSection({ projectId, user, files, onFilesCha
         type="installation"
         projectId={projectId}
         user={user}
-        canUpload={user?.role === 'admin'}
+        canUpload={true}
         onFilesChanged={onFilesChanged}
       />
     </div>
@@ -143,7 +138,6 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
 const TOKEN_KEY = 'wecapurred_token';
 
 function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
-  const [reviewing, setReviewing] = useState(false);
   const [deleting, setDeleting]   = useState(false);
   const token = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : '';
 
@@ -152,16 +146,6 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
   const fmtDate = formatTimestamp;
 
   const canDelete = user?.role === 'admin' || file.uploaded_by === user?.id;
-  const canReview = file.type === 'installation' && file.status === 'pending' && user?.role !== 'admin';
-
-  const handleReview = async (action) => {
-    setReviewing(true);
-    try {
-      await reviewInstallationFile(projectId, file.id, action);
-      onFilesChanged();
-    } catch { /* silently fail */ }
-    finally { setReviewing(false); }
-  };
 
   const handleDelete = async () => {
     if (!confirm(`Delete "${file.file_name}"?`)) return;
@@ -173,8 +157,6 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
     finally { setDeleting(false); }
   };
 
-  const statusCfg = file.status ? STATUS_CONFIG[file.status] : null;
-
   return (
     <li className="flex items-start gap-3 px-4 py-3 transition-colors group"
       onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F5EDD6'}
@@ -185,35 +167,9 @@ function FileRow({ file, projectId, user, accentColor, onFilesChanged }) {
           By {file.uploaded_by_name} · {fmtDate(file.created_at)}
         </p>
 
-        {file.type === 'installation' && <p className="text-xs mt-1" style={{ color: '#5A7A65' }}>Removal date: {formatRemovalDate(file.removal_date)}{file.project_expiry_days && ` | Project expiry: ${file.project_expiry_days} days`}</p>}
-        {/* Status badge for installation files */}
-        {statusCfg && (
-          <div className={`inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border text-xs font-semibold ${statusCfg.color}`}>
-            <statusCfg.Icon size={10} />
-            {statusCfg.label}
-            {file.reviewed_by_name && file.status !== 'pending' && (
-              <span className="font-normal opacity-70"> · {file.reviewed_by_name}</span>
-            )}
-          </div>
-        )}
-      </div>
-
+        {file.type === 'installation' && <p className="text-xs mt-1" style={{ color: '#5A7A65' }}>        {`Removal date: ${formatRemovalDate(file.removal_date)}`}{file.project_expiry_days && ` | Project expiry: ${file.project_expiry_days} days`}</p>}
+              </div>
       <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-        {/* Approve / Decline for vendor on pending installation files */}
-        {canReview && (
-          <>
-            <button onClick={() => handleReview('approve')} disabled={reviewing}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-semibold rounded-xl transition-colors disabled:opacity-50">
-              {reviewing ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
-              Approve
-            </button>
-            <button onClick={() => handleReview('decline')} disabled={reviewing}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold rounded-xl transition-colors disabled:opacity-50">
-              <XCircle size={12} /> Decline
-            </button>
-          </>
-        )}
-
         {/* Download via proxy — token in query param since <a href> can't set headers */}
         <a href={`/api/projects/${projectId}/files/${file.id}/download?token=${token}`}
           className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl transition-colors"
