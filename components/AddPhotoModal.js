@@ -6,7 +6,7 @@ import { addPhoto } from '../lib/apiService';
 const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
 const COLLATERALS = ['Glass Facade', 'Television'];
 
-const blankEntry = () => ({ _id: Date.now() + Math.random(), material: '', collateral: '', length: '', breadth: '', height: '', notes: '' });
+const blankEntry = () => ({ _id: Date.now() + Math.random(), file: null, preview: null, material: '', collateral: '', length: '', breadth: '', height: '', notes: '' });
 
 const PEN_COLORS = [
   { label: 'Red',    hex: '#CC0000' },
@@ -24,8 +24,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   const canvasRef  = useRef(null);
   const streamRef  = useRef(null);
 
-  const [file, setFile]                   = useState(null);
-  const [preview, setPreview]             = useState(null);
+  const targetEntry = useRef(null); // entry id receiving the next photo
   const [location, setLocation]           = useState('');
   const [storeName, setStoreName]         = useState('');
   const [storeId, setStoreId] = useState('');
@@ -94,7 +93,14 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   useEffect(() => { fetchLocation(); }, []);
 
   // ── Open annotation after photo is chosen ─────────────────────
-  const openAnnotation = (f, url) => {
+  const setEntryImage = (id, f, url) =>
+    setEntries((e) => e.map((x) => x._id === id ? { ...x, file: f, preview: url } : x));
+
+  const pickGallery = (id) => { targetEntry.current = id; galleryRef.current?.click(); };
+  const pickCamera  = (id) => { targetEntry.current = id; setCameraOpen(true); };
+
+  const openAnnotation = (f, url, id = targetEntry.current) => {
+    targetEntry.current = id;
     setRawFile(f);
     setRawPreview(url);
     penPaths.current = [];
@@ -105,6 +111,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
   // ── Gallery / Camera ──────────────────────────────────────────
   const onGalleryFile = (e) => {
     const f = e.target.files?.[0];
+    e.target.value = '';
     if (!f) return;
     openAnnotation(f, URL.createObjectURL(f));
   };
@@ -256,15 +263,13 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
     const canvas = annotateCanvasRef.current;
     canvas.toBlob((blob) => {
       const annotatedFile = new File([blob], rawFile?.name || `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-      setFile(annotatedFile);
-      setPreview(URL.createObjectURL(annotatedFile));
+      setEntryImage(targetEntry.current, annotatedFile, URL.createObjectURL(annotatedFile));
       setAnnotating(false);
     }, 'image/jpeg', 0.92);
   };
 
   const handleAnnotateSkip = () => {
-    setFile(rawFile);
-    setPreview(rawPreview);
+    setEntryImage(targetEntry.current, rawFile, rawPreview);
     setAnnotating(false);
   };
 
@@ -279,11 +284,12 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
 
   // ── Save ──────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!file)              return setError('Please select or take a photo.');
+    const missing = entries.findIndex((x) => !x.file);
+    if (missing !== -1)     return setError(`Please select or take a photo for Entry ${missing + 1}.`);
     if (!location.trim())   return setError('Location is required.');
     setError(''); setUploading(true);
     try {
-      await addPhoto(projectId, location, storeName, storeOwnerName, storeOwnerMobile, entries, file, setProgress, { store_id: storeId, brand_name: brandName });
+      await addPhoto(projectId, location, storeName, storeOwnerName, storeOwnerMobile, entries, setProgress, { store_id: storeId, brand_name: brandName });
       onAdded();
     } catch { setError('Upload failed. Check your AWS S3 credentials.'); }
     finally  { setUploading(false); }
@@ -460,7 +466,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
           <div>
             <h2 className="text-base font-bold text-gray-900">Add Photo</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{entries.length} entr{entries.length === 1 ? 'y' : 'ies'} · same image</p>
+            <p className="text-xs text-gray-400 mt-0.5">{entries.length} entr{entries.length === 1 ? 'y' : 'ies'} · one photo each</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <X size={18} className="text-gray-500" />
@@ -476,47 +482,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
 
             {/* ── Photo ── */}
             <input ref={galleryRef} type="file" accept="image/*" onChange={onGalleryFile} className="hidden" />
-            {preview ? (
-              <div className="relative rounded-2xl overflow-hidden group">
-                <img src={preview} alt="preview" className="w-full h-44 object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                  <button
-                    onClick={() => openAnnotation(file, preview)}
-                    className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold"
-                  >
-                    ✏️ Annotate
-                  </button>
-                  <button onClick={() => setCameraOpen(true)}
-                    className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold">
-                    <Camera size={14} /> Retake
-                  </button>
-                  <button onClick={() => galleryRef.current?.click()}
-                    className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold">
-                    <ImagePlus size={14} /> Replace
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-sm font-bold text-gray-700 mb-2">Photo *</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => setCameraOpen(true)}
-                    className="h-24 bg-primary-50 border-2 border-dashed border-primary-200 rounded-2xl flex flex-col items-center justify-center gap-1.5 active:bg-primary-100 transition-colors">
-                    <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center shadow-md shadow-red-100">
-                      <Camera size={16} className="text-white" />
-                    </div>
-                    <p className="text-xs font-bold text-primary-600">Take Photo</p>
-                  </button>
-                  <button onClick={() => galleryRef.current?.click()}
-                    className="h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-1.5 active:bg-gray-100 transition-colors">
-                    <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
-                      <FolderOpen size={16} className="text-gray-500" />
-                    </div>
-                    <p className="text-xs font-bold text-gray-500">Choose File</p>
-                  </button>
-                </div>
-              </div>
-            )}
+
 
             {/* ── Location (shared) ── */}
             <div>
@@ -574,6 +540,9 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
                   total={entries.length}
                   onChange={setEntry(entry._id)}
                   onRemove={() => removeEntry(entry._id)}
+                  onPickGallery={() => pickGallery(entry._id)}
+                  onPickCamera={() => pickCamera(entry._id)}
+                  onAnnotate={() => openAnnotation(entry.file, entry.preview, entry._id)}
                 />
               ))}
             </div>
@@ -581,7 +550,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
             {/* Add entry button */}
             <button onClick={addEntry}
               className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center gap-2 text-sm font-bold text-gray-400 hover:border-primary-300 hover:text-primary-500 hover:bg-primary-50 active:bg-primary-100 transition-colors">
-              <Plus size={16} /> Add Another Entry (same image)
+              <Plus size={16} /> Add Another Entry (new photo, same store details)
             </button>
 
             {/* Upload progress */}
@@ -631,7 +600,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
 }
 
 // ── Single entry block ────────────────────────────────────────────
-function EntryBlock({ entry, index, total, onChange, onRemove }) {
+function EntryBlock({ entry, index, total, onChange, onRemove, onPickGallery, onPickCamera, onAnnotate }) {
   return (
     <div className="border border-gray-200 rounded-2xl overflow-hidden">
       {/* Entry header */}
@@ -646,6 +615,41 @@ function EntryBlock({ entry, index, total, onChange, onRemove }) {
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Photo (unique per entry) */}
+        {entry.preview ? (
+          <div className="relative rounded-2xl overflow-hidden group">
+            <img src={entry.preview} alt={`Entry ${index + 1}`} className="w-full h-44 object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+              <button type="button" onClick={onAnnotate}
+                className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold">✏️ Annotate</button>
+              <button type="button" onClick={onPickCamera}
+                className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold"><Camera size={14} /> Retake</button>
+              <button type="button" onClick={onPickGallery}
+                className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-4 py-2 rounded-xl text-sm font-semibold"><ImagePlus size={14} /> Replace</button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs font-bold text-gray-600 mb-2">Photo *</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={onPickCamera}
+                className="h-24 bg-primary-50 border-2 border-dashed border-primary-200 rounded-2xl flex flex-col items-center justify-center gap-1.5 active:bg-primary-100 transition-colors">
+                <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center shadow-md shadow-red-100">
+                  <Camera size={16} className="text-white" />
+                </div>
+                <p className="text-xs font-bold text-primary-600">Take Photo</p>
+              </button>
+              <button type="button" onClick={onPickGallery}
+                className="h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center gap-1.5 active:bg-gray-100 transition-colors">
+                <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
+                  <FolderOpen size={16} className="text-gray-500" />
+                </div>
+                <p className="text-xs font-bold text-gray-500">Choose File</p>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Material */}
         <div>
           <p className="text-xs font-bold text-gray-600 mb-2">Material / Type</p>
