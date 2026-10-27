@@ -23,7 +23,7 @@ export const GET = withAuth(async (request, { params }) => {
 
 // POST /api/projects/:id/files — upload a file
 // type: 'racce' | 'installation'
-// installation uploads: admin only
+// installation uploads: admin, or the vendor who owns the project
 export const POST = withAuth(async (request, { params }) => {
   const { ok, res } = await checkProjectAccess(request, params.id);
   if (!ok) return res;
@@ -41,11 +41,6 @@ export const POST = withAuth(async (request, { params }) => {
   if (!file || typeof file.arrayBuffer !== 'function') return Response.json({ error: 'No file provided' }, { status: 400 });
   if (!['racce', 'installation'].includes(type)) {
     return Response.json({ error: 'type must be racce or installation' }, { status: 400 });
-  }
-
-  // Only admin can upload installation files
-  if (type === 'installation' && request.user.role !== 'admin') {
-    return Response.json({ error: 'Only admin can upload installation files' }, { status: 403 });
   }
 
   // Date-only value: never convert it to a timezone-dependent timestamp.
