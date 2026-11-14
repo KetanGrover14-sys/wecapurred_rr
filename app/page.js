@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../components/AuthProvider';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Brand from '../components/Brand';
+import TranslatedText from '../components/TranslatedText';
 
 export default function LoginPage() {
   const { user, login } = useAuth();
@@ -122,9 +123,10 @@ export default function LoginPage() {
             <button type="submit" disabled={loading}
               className="w-full py-4 rounded-2xl font-semibold text-sm text-white transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-70"
               style={{ backgroundColor: '#007f98' }}
-              onMouseEnter={(e) => { if (!loading) e.target.style.backgroundColor = '#005f73'; }}
-              onMouseLeave={(e) => { if (!loading) e.target.style.backgroundColor = '#007f98'; }}>
-              {loading ? <><Loader2 size={17} className="animate-spin" /> Signing in…</> : 'Sign In'}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#005f73'; }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.backgroundColor = '#007f98'; }}>
+              {loading && <Loader2 size={17} className="animate-spin" />}
+              <TranslatedText>{loading ? 'Signing in…' : 'Sign In'}</TranslatedText>
             </button>
           </form>
         </div>

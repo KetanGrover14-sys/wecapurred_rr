@@ -1,4 +1,5 @@
 'use client';
+import TranslatedText from './TranslatedText';
 import { useState, useRef } from 'react';
 import { Upload, Download, Trash2, FileText, Wrench, Loader2 } from 'lucide-react';
 import { uploadProjectFile, deleteProjectFile } from '../lib/apiService';
@@ -94,9 +95,8 @@ function FileGroup({ title, icon, accentColor, files, type, projectId, user, can
               disabled={uploading || (type === 'installation' && !removalDate)}
               className="flex items-center gap-1.5 text-white text-xs font-semibold px-3 py-1.5 rounded-xl transition-colors disabled:opacity-60"
               style={{ backgroundColor: c.btnBg }}>
-              {uploading
-                ? <><Loader2 size={13} className="animate-spin" /> {progress}%</>
-                : <><Upload size={13} /> Upload</>}
+              {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+              <TranslatedText>{uploading ? `${progress}%` : 'Upload'}</TranslatedText>
             </button>
           </>
         )}

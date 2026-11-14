@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Upload, Loader2, ImagePlus, Camera, FolderOpen, RotateCcw, MapPin, LocateFixed, Plus, Trash2, Undo2, Eraser, Check } from 'lucide-react';
 import { addPhoto } from '../lib/apiService';
+import TranslatedText from './TranslatedText';
 
 const MATERIALS = ['Non-Lit', 'GSB', 'GSB-D/S', 'VSB','Other'];
 const COLLATERALS = ['Glass Facade', 'Television'];
@@ -466,7 +467,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
           <div>
             <h2 className="text-base font-bold text-gray-900">Add Photo</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{entries.length} entr{entries.length === 1 ? 'y' : 'ies'} · one photo each</p>
+            <p className="text-xs text-gray-400 mt-0.5"><TranslatedText>{`${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} · one photo each`}</TranslatedText></p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <X size={18} className="text-gray-500" />
@@ -558,7 +559,7 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
               <div>
                 <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                   <span className="font-medium">Uploading…</span>
-                  <span className="font-bold text-primary-500">{progress}%</span>
+                  <span className="font-bold text-primary-500"><TranslatedText>{`${progress}%`}</TranslatedText></span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div className="h-full bg-primary-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
@@ -577,9 +578,8 @@ export default function AddPhotoModal({ projectId, onClose, onAdded }) {
           </button>
           <button onClick={handleSave} disabled={uploading}
             className="flex-[2] py-3.5 bg-primary-500 hover:bg-primary-600 active:bg-primary-700 disabled:opacity-70 text-white font-bold rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-100 text-sm">
-            {uploading
-              ? <><Loader2 size={15} className="animate-spin" /> Uploading…</>
-              : <><Upload size={15} /> Save {entries.length > 1 ? `${entries.length} Photos` : 'Photo'}</>}
+            {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+            <TranslatedText>{uploading ? 'Uploading…' : `Save ${entries.length > 1 ? `${entries.length} Photos` : 'Photo'}`}</TranslatedText>
           </button>
         </div>
       </div>
@@ -605,7 +605,7 @@ function EntryBlock({ entry, index, total, onChange, onRemove, onPickGallery, on
     <div className="border border-gray-200 rounded-2xl overflow-hidden">
       {/* Entry header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200">
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Entry {index + 1}</span>
+        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide"><TranslatedText>{`Entry ${index + 1}`}</TranslatedText></span>
         {total > 1 && (
           <button onClick={onRemove}
             className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
