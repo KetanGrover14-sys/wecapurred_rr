@@ -1,7 +1,7 @@
 import pptxgen from 'pptxgenjs';
 import { getProjectById, getPhotosByProject } from '../../../../../lib/sheets';
 import { withAuth } from '../../../../../lib/withAuth';
-import { addPhotoStores } from '../../../../../lib/pptPhotoStores';
+import { getPhotoStoreText } from '../../../../../lib/pptPhotoStores';
 
 const GREEN      = '2D6A4F';
 const GREEN_DARK = '1B4332';
@@ -72,6 +72,9 @@ export const GET = withAuth(async (request, { params }) => {
   for (let i = 0; i < groups.length; i++) {
     const group = groups[i];
     const first = group[0];
+    const storeText = getPhotoStoreText(group);
+    const storeRowHeight = storeText ? 0.56 : 0;
+    const imageHeight = 3.72 - storeRowHeight;
     const slide = prs.addSlide();
     slide.background = { color: WHITE };
 
@@ -82,20 +85,26 @@ export const GET = withAuth(async (request, { params }) => {
     // Image — full slide width
     const imgData = await fetchImageAsBase64(first.image_url);
     if (imgData) {
-      slide.addImage({ data:imgData, x:0.15, y:0.48, w:4.7, h:3.72, sizing:{type:'contain',w:4.7,h:3.72} });
+      slide.addImage({ data:imgData, x:0.15, y:0.48, w:4.7, h:imageHeight, sizing:{type:'contain',w:4.7,h:imageHeight} });
     }
-    addPhotoStores(slide, group);
 
     // ── Specs strip at the bottom ─────────────────────────
-    const SY = 4.24;
-    const SH = 1.06;   // SY + SH = 5.30, footer at 5.33
+    const SY = 4.24 - storeRowHeight;
+    const SH = 1.06 + storeRowHeight;
     const LH = 0.25;
-    const CY = SY + LH;
-    const CH = SH - LH;
+    const CY = SY + LH + storeRowHeight;
+    const CH = SH - LH - storeRowHeight;
 
     slide.addShape(prs.ShapeType.rect, { x:0, y:SY, w:'100%', h:SH, fill:{color:LIGHT_BG}, line:{color:BORDER,width:0.5} });
     slide.addShape(prs.ShapeType.rect, { x:0, y:SY, w:'100%', h:LH, fill:{color:GREEN_DARK}, line:{color:GREEN_DARK} });
     slide.addText('SPECIFICATIONS', { x:0.2, y:SY+0.04, w:9.6, h:LH-0.06, color:WHITE, fontSize:8, bold:true, align:'center' });
+    if (storeText) {
+      slide.addText(storeText, {
+        x:0.2, y:SY+LH, w:9.6, h:storeRowHeight,
+        color:DARK, fontSize:10, bold:true, fit:'shrink',
+      });
+      slide.addShape(prs.ShapeType.line, { x:0.2, y:CY, w:9.6, h:0, line:{color:BORDER,width:0.5} });
+    }
 
     const numEntries = group.length;
 
