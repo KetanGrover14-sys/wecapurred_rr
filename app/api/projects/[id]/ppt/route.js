@@ -1,6 +1,7 @@
 import pptxgen from 'pptxgenjs';
 import { getProjectById, getPhotosByProject } from '../../../../../lib/sheets';
 import { withAuth } from '../../../../../lib/withAuth';
+import { addPhotoStores } from '../../../../../lib/pptPhotoStores';
 
 const GREEN      = '2D6A4F';
 const GREEN_DARK = '1B4332';
@@ -83,6 +84,7 @@ export const GET = withAuth(async (request, { params }) => {
     if (imgData) {
       slide.addImage({ data:imgData, x:0.15, y:0.48, w:4.7, h:3.72, sizing:{type:'contain',w:4.7,h:3.72} });
     }
+    addPhotoStores(slide, group);
 
     // ── Specs strip at the bottom ─────────────────────────
     const SY = 4.24;
@@ -99,11 +101,9 @@ export const GET = withAuth(async (request, { params }) => {
 
     // Helper: render location + store info in left column
     const addStoreCol = (cx, w) => {
-      const storeLine = first.store_name || '';
       const ownerLine = [first.store_owner_name, first.store_owner_mobile].filter(Boolean).join('  •  ');
       slide.addText('LOCATION / STORE', { x:cx, y:CY+0.06, w, h:0.18, color:GREEN, fontSize:7, bold:true });
       slide.addText(first.location||'—', { x:cx, y:CY+0.26, w, h:0.18, color:first.location?DARK:'AAAAAA', fontSize:8.5, wrap:true });
-      if (storeLine) slide.addText(storeLine, { x:cx, y:CY+0.46, w, h:0.17, color:DARK, fontSize:8, wrap:true });
       if (ownerLine) slide.addText(ownerLine, { x:cx, y:CY+0.64, w, h:0.16, color:DARK, fontSize:7.5, wrap:true });
     };
 

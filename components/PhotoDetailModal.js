@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { X, MapPin, Ruler, Layers, FileText, Trash2, Calendar, Loader2 } from 'lucide-react';
 import { deletePhoto } from '../lib/apiService';
 import PhotoInstallations from './PhotoInstallations';
+import PhotoStoreDetails from './PhotoStoreDetails';
 import { formatTimestamp } from '../lib/dates';
 
 export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted, onFilesChanged }) {
@@ -67,6 +68,8 @@ export default function PhotoDetailModal({ photos, projectId, onClose, onDeleted
               className="w-full object-contain"
               style={{ maxHeight: 340 }} />
           </div>
+
+          <PhotoStoreDetails photos={photos} />
 
           {/* Specs */}
           <div className="p-5 space-y-5">

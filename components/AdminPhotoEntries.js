@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Download } from 'lucide-react';
 import { formatTimestamp, formatRemovalDate } from '../lib/dates';
+import PhotoStoreDetails from './PhotoStoreDetails';
 
 const labels = { recce: 'Recce', installed: 'Installed', removed: 'Removed' };
 const colors = { recce: 'bg-blue-50 text-blue-700', installed: 'bg-green-50 text-green-800', removed: 'bg-gray-100 text-gray-600' };
@@ -36,6 +37,8 @@ export default function AdminPhotoEntries({ vendors, vendorsLoading }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const dialog = useRef(null);
+  const photoDialog = useRef(null);
+  const [preview, setPreview] = useState(null);
   const loadSequence = useRef(0);
 
   const load = useCallback(async () => {
@@ -207,7 +210,11 @@ export default function AdminPhotoEntries({ vendors, vendorsLoading }) {
     <div className="overflow-x-auto"><table className="w-full text-left text-sm" style={{ minWidth: 1450 }}>
       <thead className="bg-gray-50 text-xs uppercase text-gray-600"><tr>{['Recce photo', 'Project', 'Store ID', 'Store name', 'Collateral type', 'Brand name', 'Recce added', 'Installation date / time', 'Project expiry (days)', 'Days until removal', 'Removal date', 'Payment', 'Status', 'Actions'].map(title => <th key={title} className="p-3 whitespace-nowrap">{title}</th>)}</tr></thead>
       <tbody>{visible.map(entry => <tr key={entry.id} className="border-t border-gray-100 align-top">
-        <td className="p-3">{safeURL(entry.image_url) ? <a href={safeURL(entry.image_url)} target="_blank" rel="noopener noreferrer"><img src={safeURL(entry.image_url)} alt={`Recce for ${entry.store_name || entry.store_id || 'store'}`} className="w-20 h-16 object-cover rounded-lg" loading="lazy" /></a> : 'No image'}</td>
+        <td className="p-3">{safeURL(entry.image_url) ? (
+          <button type="button" onClick={() => { setPreview(entry); photoDialog.current.showModal(); }}>
+            <img src={safeURL(entry.image_url)} alt={`View recce photo for ${entry.store_name || entry.store_id || 'store'}`} className="w-20 h-16 object-cover rounded-lg" loading="lazy" />
+          </button>
+        ) : 'No image'}</td>
         <td className="p-3"><Link className="text-green-800 underline" href={`/projects/${encodeURIComponent(entry.project_id)}`}>{entry.project_name}</Link></td>
         <td className="p-3">{entry.store_id || 'Not recorded'}</td><td className="p-3">{entry.store_name || 'Not recorded'}</td><td className="p-3">{entry.collateral || 'Not recorded'}</td><td className="p-3">{entry.brand_name || 'Not recorded'}</td>
         <td className="p-3 whitespace-nowrap text-xs">{formatTimestamp(entry.created_at)}</td>
@@ -222,6 +229,18 @@ export default function AdminPhotoEntries({ vendors, vendorsLoading }) {
     </table></div>
     {!visible.length && <p className="p-8 text-center text-gray-500">{loading ? 'Loading photo entries...' : error ? 'Entries could not be loaded.' : 'No matching photo entries.'}</p>}
     <p className="px-5 py-3 text-xs text-gray-500 border-t">Showing {visible.length} of {entries.length} entries. Expiry is calculated from the next active removal date; installation timestamps are upload times.</p>
+    <dialog ref={photoDialog} onClose={() => setPreview(null)} className="w-full max-w-3xl rounded-2xl shadow-xl backdrop:bg-black/50" aria-labelledby="recce-preview-title">
+      <div className="flex items-center justify-between px-5 py-3">
+        <h3 id="recce-preview-title" className="font-semibold">Recce photo</h3>
+        <button type="button" className="rounded-lg border px-3 py-1.5 text-sm" onClick={() => photoDialog.current.close()}>Close</button>
+      </div>
+      {preview && <>
+        <a href={safeURL(preview.image_url)} target="_blank" rel="noopener noreferrer" aria-label="Open original recce photo in a new tab">
+          <img src={safeURL(preview.image_url)} alt="Recce photo" className="max-h-[65vh] w-full bg-gray-950 object-contain" />
+        </a>
+        <PhotoStoreDetails photos={[preview]} />
+      </>}
+    </dialog>
     <dialog ref={dialog} onCancel={event => { if (saving) event.preventDefault(); else setEdit(null); }} className="w-full max-w-lg rounded-2xl p-6 shadow-xl backdrop:bg-black/50" aria-labelledby="edit-entry-title">
       {edit && <form onSubmit={save}><h3 id="edit-entry-title" className="text-xl font-semibold mb-4">Edit photo entry</h3>
         {[['store_id', 'Store ID'], ['store_name', 'Store name'], ['collateral', 'Collateral type'], ['brand_name', 'Brand name']].map(([key, label]) => <label key={key} className="block text-sm mb-3">{label}<input className={`${fieldStyle} mt-1`} maxLength={200} value={edit[key]} disabled={saving} onChange={event => setEdit(previous => ({ ...previous, [key]: event.target.value }))} /></label>)}
